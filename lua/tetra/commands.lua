@@ -1,4 +1,4 @@
-tetra.commands = {}
+tetra.commands = tetra.commands or {}
 
 local argMeta = {}
 do
@@ -76,10 +76,10 @@ do
 end
 
 
-local list = {}
+local list = tetra.commands.list or {}
 tetra.commands.list = list
 
-local alias_list = {}
+local alias_list = tetra.commands.alias_list or {}
 tetra.commands.alias_list = alias_list
 
 function tetra.commands.get(cmd)

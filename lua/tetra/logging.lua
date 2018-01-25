@@ -27,15 +27,8 @@ tetra.number_color = Color(100, 255, 100)
 tetra.string_color = Color(200, 200, 200)
 tetra.misc_color   = Color(100, 100, 200)
 
-util.AddNetworkString("tetra_chat")
 function tetra.chat(ply, ...)
-	net.Start("tetra_chat")
-		net.WriteTable{...}
-	if ply then
-		net.Send(ply)
-	else
-		net.Broadcast()
-	end
+	tetra.rpc(ply, "chat.AddText", false, ...)
 end
 
 function tetra.echo(ply, ...)
@@ -61,5 +54,5 @@ function tetra.echo(ply, ...)
 	tetra.chat(ply, unpack(out))
 
 	MsgC(tetra.main_color, "[tetra] ", unpack(out))
-	MsgN("")
+	MsgN("") -- cant pass after unpack and isnt needed in chat
 end
