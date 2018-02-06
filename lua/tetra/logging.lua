@@ -28,7 +28,7 @@ tetra.string_color = Color(200, 200, 200)
 tetra.misc_color   = Color(100, 100, 200)
 
 function tetra.chat(ply, ...)
-	tetra.rpc(ply, "chat.AddText", false, ...)
+	tetra.rpc(ply, "chat.AddText", ...)
 end
 
 function tetra.echo(ply, ...)

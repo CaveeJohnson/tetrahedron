@@ -1,3 +1,5 @@
+AddCSLuaFile()
+
 -- luafuzz.lua
 -- public domain by szensk
 -- buggy reimplementation of https://github.com/garybernhardt/selecta

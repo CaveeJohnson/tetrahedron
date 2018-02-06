@@ -1,5 +1,5 @@
 local function find(name)
-	local lookup = name:Split(".")
+	local lookup = name:Split("[.:]")
 	local f_name = table.remove(lookup, #lookup)
 
 	local f, namespace = nil, _G
@@ -12,16 +12,16 @@ local function find(name)
 		end
 	end
 
-	return f, namespace
+	return f, namespace, name:match("^.+:.-$")
 end
 
 net.Receive("tetra_rpc", function()
 	local name = net.ReadString()
-	local f, namespace = find(name)
+	local f, namespace, meta = find(name)
 
 	local res, err = false, "failed to find method"
 	if f then
-		if net.ReadBool() then -- self:bla()
+		if meta then
 			res, err = pcall(f, namespace, unpack(net.ReadTable()))
 		else
 			res, err = pcall(f, unpack(net.ReadTable()))
