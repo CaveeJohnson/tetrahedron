@@ -31,6 +31,8 @@ include("tetra/usergroups.lua")
 include("tetra/privs.lua")
 include("tetra/commands_sv.lua")
 
+include("tetra/cami_support.lua")
+
 include("tetra/wrappers/aowl.lua")
 
 include("tetra/commands/test.lua")
