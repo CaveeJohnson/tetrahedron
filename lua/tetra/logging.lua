@@ -80,6 +80,18 @@ function tetra.chat(ply, ...)
 	end
 end
 
+function tetra.sound(ply, ...)
+	if isentity(ply) and not ply:IsValid() then -- console
+		return
+	end
+
+	if CLIENT then
+		surface.PlaySound(...)
+	else
+		tetra.rpc(ply, "surface.PlaySound", ...)
+	end
+end
+
 function tetra.echo(ply, ...)
 	local out = {}
 	for _, v in ipairs{...} do

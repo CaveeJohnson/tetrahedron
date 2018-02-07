@@ -1,3 +1,5 @@
+tetra.fail_sound = "buttons/button18.wav"
+
 function tetra.commands.run(caller, cmd, args, line)
 	cmd = cmd:lower()
 
@@ -17,6 +19,7 @@ function tetra.commands.run(caller, cmd, args, line)
 
 		if res == false then
 			tetra.chat(caller, tetra.warn_color, string.format("Access Denied: %s.", err or "You do not have the correct privilige"))
+			tetra.sound(caller, tetra.fail_sound)
 			return
 		end
 
@@ -28,6 +31,7 @@ function tetra.commands.run(caller, cmd, args, line)
 
 				if not args[i] and not optional then
 					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) is missing and is not optional.", v.name or i, i))
+					tetra.sound(caller, tetra.fail_sound)
 					return
 				end
 
@@ -42,6 +46,7 @@ function tetra.commands.run(caller, cmd, args, line)
 
 				if not res and not optional then
 					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) %s.", v.name or i, i, err or "was of incorrect type and is not optional"))
+					tetra.sound(caller, tetra.fail_sound)
 					return
 				end
 
@@ -61,6 +66,7 @@ function tetra.commands.run(caller, cmd, args, line)
 
 			if res == false then
 				tetra.chat(caller, tetra.warn_color, err)
+				tetra.sound(caller, tetra.fail_sound)
 				hook.Run("Tetra_CommandFailed", caller, line, pass, err)
 			else
 				tetra.logf("%s called command '%s' with line '%s'", IsValid(caller) and caller or tetra.getConsoleName(), cmd, line)
