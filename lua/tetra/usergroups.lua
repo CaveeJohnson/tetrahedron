@@ -1,21 +1,13 @@
 tetra.users = tetra.users or {}
 
-local authed = tetra.users.authed or {}
-tetra.users.authed = authed
-
-local groups = {
+local groups = tetra.users.groups or {
+	user = "user", -- make sure to use groupInherits
 	admin = "user",
 	superadmin = "admin",
 }
 tetra.users.groups = groups
 
 -- TODO: load 'groups' file, management etc
-
-function tetra.users.auth(ply, group)
-	authed[ply] = true
-
-	hook.Run("Tetra_Authed", ply, group)
-end
 
 function tetra.users.groupInherits(group, target, level)
 	if group == target then return true end
@@ -24,6 +16,7 @@ function tetra.users.groupInherits(group, target, level)
 
 	while base do
 		if base == target then return true end
+		if base == "user" then return false end -- user = "user"
 
 		local now = base
 		base = groups[base]
@@ -39,16 +32,16 @@ end
 
 local meta = debug.getregistry().Player
 
-function meta:hasUserGroup(target)
+function meta:hasUserGroup(target, ignoreSafeguards)
 	target = target:lower()
 	if target == "user" then return true end
 
-	if not groups[target] then
+	if not groups[target] and not ignoreSafeguards then
 		local info = debug.getinfo(2)
 		local possibly_bad = target:match("admin") or target:match("developer") or target:match("operator")
 
 		local res = false
-		if not possibly_bad or self:IsAdmin() then
+		if not possibly_bad or self:IsAdmin(true) then
 			res = true
 		end
 
@@ -58,27 +51,43 @@ function meta:hasUserGroup(target)
 
 	local group = self:GetUserGroup()
 	if not groups[group] then
-		tetra.warnf("player '%s' (%s) with an invalid group '%s'", self:Nick(), self:SteamID64(), group)
+		local possibly_bad = target:match("admin") or target:match("developer") or target:match("operator")
 
-		return true
+		local res = false
+		if not possibly_bad or self:IsAdmin(true) then
+			res = true
+		end
+
+		tetra.warnf("player '%s' (%s) with an invalid group '%s', defaulting to %s", self:Nick(), self:SteamID64(), group, tostring(res))
+		return res
 	end
 
 	return tetra.users.groupInherits(group, target, 3)
 end
 
-function meta:IsAdmin()
-	return meta:hasUserGroup("admin")
+function meta:IsAdmin(ignoreSafeguards)
+	return self:hasUserGroup("admin", ignoreSafeguards)
 end
 
-function meta:IsSuperAdmin()
-	return meta:hasUserGroup("superadmin")
+function meta:IsSuperAdmin(ignoreSafeguards)
+	return self:hasUserGroup("superadmin", ignoreSafeguards)
 end
 
 
 if CLIENT then return end
 
+local authed = tetra.users.authed or {}
+tetra.users.authed = authed
 
-local user_reference = {}
+function tetra.users.auth(ply, group)
+	authed[ply] = true
+
+	hook.Run("Tetra_Authed", ply, group)
+end
+
+local user_reference = tetra.users.reference or {}
+tetra.users.reference = user_reference
+
 local loaded = false
 
 local USERS_FILE = "tetra/users.txt"
@@ -138,20 +147,23 @@ function tetra.users.setGroup(sid64, group, dontSave)
 		group = group:lower()
 	end
 
+	local new = group or "user"
 	local old = user_reference[sid64] or "user"
+
 	user_reference[sid64] = group
 
 	if IsValid(ply) then
-		ply:SetUserGroup(group)
+		ply:SetUserGroup(new)
 
 		if tetra.cami then
-			CAMI.SignalUserGroupChanged(ply, old, group, tetra.cami.token)
+			CAMI.SignalUserGroupChanged(ply, old, new, tetra.cami.token)
 		end
 	elseif tetra.cami then
-		CAMI.SignalSteamIDUserGroupChanged(util.SteamIDFrom64(sid64), old, group, tetra.cami.token)
+		CAMI.SignalSteamIDUserGroupChanged(util.SteamIDFrom64(sid64), old, new, tetra.cami.token)
 	end
 
 	if not dontSave then
+		tetra.logf("saving usergroup for '%s' (%s); new group is '%s'", IsValid(ply) and ply:Nick() or "unknown", sid64, new)
 		tetra.users.saveFile()
 	end
 end
@@ -162,9 +174,7 @@ function tetra.users.onAuthed(ply)
 
 	ply:SetUserGroup(group, true)
 
-	tetra.users.auth(ply)
-	tetra.rpc(nil, "tetra.users.auth", ply, group) -- idk if cl will want this but fuck it
-
+	tetra.users.auth(ply, group)
 	tetra.logf("authed user '%s' (%s); usergroup '%s'", ply:Nick(), sid64, group or "user")
 end
 hook.Add("PlayerInitialSpawn", "tetra", tetra.users.onAuthed)

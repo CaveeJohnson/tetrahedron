@@ -10,31 +10,40 @@ local function incl_cl(path)
 	return CLIENT and include(path)
 end
 
-incl_sh("tetra/libs/cami.lua")
-incl_sh("tetra/libs/luafuzz.lua")
+local function incl_sv(path)
+	return SERVER and include(path)
+end
 
-incl_sh("tetra/util.lua")
-incl_sh("tetra/class.lua")
+do
+	incl_sh("tetra/libs/cami.lua")
+	incl_sh("tetra/libs/luafuzz.lua")
 
-incl_sh("tetra/commands.lua")
+	incl_sh("tetra/util.lua")
+	incl_sh("tetra/class.lua")
 
-incl_cl("tetra/client.lua")
+	incl_sh("tetra/logging.lua")
 
-if CLIENT then return end
+	incl_sh("tetra/player_find.lua")
+	incl_sh("tetra/commands.lua")
 
-include("tetra/rpc.lua")
+	incl_sh("tetra/usergroups.lua")
+	incl_sh("tetra/privs.lua")
 
-include("tetra/logging.lua")
-include("tetra/player_find.lua")
+	incl_sh("tetra/cami_support.lua")
 
-include("tetra/usergroups.lua")
-include("tetra/privs.lua")
-include("tetra/commands_sv.lua")
+	incl_sh("tetra/commands/core.lua")
+	incl_sh("tetra/commands/test.lua")
+end
 
-include("tetra/cami_support.lua")
+do
+	incl_cl("tetra/client.lua")
+end
 
-include("tetra/wrappers/aowl.lua")
+do
+	incl_sv("tetra/rpc.lua")
+	incl_sv("tetra/commands_sv.lua")
 
-include("tetra/commands/test.lua")
+	incl_sv("tetra/wrappers/aowl.lua")
+end
 
 tetra.logf("startup done!")

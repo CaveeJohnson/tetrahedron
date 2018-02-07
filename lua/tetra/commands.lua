@@ -12,23 +12,32 @@ do
 	}
 	tetra.commands.arg_t = types
 
-	for name, v in ipairs(types) do
+	for name, val in pairs(types) do
 		_G["TETRA_" .. name] = val
 	end
 
 	tetra.isSet (argMeta, "optional", "boolean")
 	tetra.hasSet(argMeta, "fuzzyMatching", "boolean")
-	tetra.getSet(argMeta, "forceMatchOnce", "boolean")
+	tetra.getSet(argMeta, "matchOnce", "boolean", "must")
 	tetra.getSet(argMeta, "filter", "function")
 	tetra.getSet(argMeta, "name", "string")
 	tetra.getSet(argMeta, "description", "string")
 
+	function argMeta:addArgument(...)
+		return self.command:addArgument(...)
+	end
+
 	function argMeta:doParse(data, caller)
-		local t = self.argtype
+		local t = self.argtype or -1
 
 		if t == TETRA_ARG_PLAYER then
 			local ply = tetra.findPlayersFrom(data, caller, self:hasFuzzyMatching())
+
 			if ply then
+				if ply:containsMultiple() and self:mustMatchOnce() then
+					return nil, string.format("'%s' matched %d players (only one allowed)", data, #ply.players)
+				end
+
 				return ply
 			else
 				return nil, string.format("did not find any players matching '%s'", data)
@@ -68,6 +77,7 @@ do
 
 		local obj = {
 			argtype = argtype,
+			command = self,
 		}
 		self.arguments[self.argument_count] = setmetatable(obj, m)
 

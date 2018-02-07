@@ -1,6 +1,5 @@
 function tetra.commands.run(caller, cmd, args, line)
 	cmd = cmd:lower()
-	cmd = alias_list[cmd] or cmd
 
 	local cmd_obj = tetra.commands.get(cmd)
 	if not cmd_obj then return end
@@ -28,13 +27,21 @@ function tetra.commands.run(caller, cmd, args, line)
 				local optional = v:isOptional()
 
 				if not args[i] and not optional then
-					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (%d) is missing and is not optional.", v.name or i, i))
+					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) is missing and is not optional.", v.name or i, i))
 					return
 				end
 
 				res, err = v:doParse(args[i], caller)
+				if res and v.filter then
+					local fres, ferr = pcall(v.filter, args[i], res)
+
+					if not fres or ferr then -- filter can fail it, not magically make new data, would be too weird
+						res, err = nil, ferr
+					end
+				end
+
 				if not res and not optional then
-					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (%d) %s.", v.name or i, i, err or "was of incorrect type and is not optional"))
+					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) %s.", v.name or i, i, err or "was of incorrect type and is not optional"))
 					return
 				end
 
@@ -56,7 +63,7 @@ function tetra.commands.run(caller, cmd, args, line)
 				tetra.chat(caller, tetra.warn_color, err)
 				hook.Run("Tetra_CommandFailed", caller, line, pass, err)
 			else
-				tetra.logf("%s called command '%s' with line '%s'", caller, cmd, line)
+				tetra.logf("%s called command '%s' with line '%s'", IsValid(caller) and caller or tetra.getConsoleName(), cmd, line)
 				hook.Run("Tetra_CommandSuccess", caller, line, pass)
 			end
 		end)

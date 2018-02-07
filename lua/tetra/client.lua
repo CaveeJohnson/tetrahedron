@@ -1,14 +1,14 @@
 local function find(name)
-	local lookup = name:Split("[.:]")
+	local lookup = string.Explode("[%.:]", name, true)
 	local f_name = table.remove(lookup, #lookup)
 
 	local f, namespace = nil, _G
-	while not f do
+	while namespace and not f do
 		if #lookup == 0 then
 			f = namespace[f_name]
+			break
 		else
 			namespace = namespace[table.remove(lookup, 1)]
-			if not namespace then break end
 		end
 	end
 
