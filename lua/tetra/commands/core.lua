@@ -1,13 +1,5 @@
-tetra.commands.register("uptime,curtime", function(caller)
-	tetra.echo(nil, caller, " requested server uptime.")
-	tetra.echo(nil, "Server has been up for ", math.Truncate(CurTime() / 3600, 1), " hours.")
-end, "user")
-
-:setFullName("Server Uptime")
-:setDescription("Echo the time since the server started.")
-:setIgnoreArguments(true)
-:setConsoleAllowed(true)
-
+-- commands required for tetrahedron to be usable
+-- this is just 'rank' for now
 
 tetra.commands.register("rank,adduser,setrank,promote,usergroup", function(caller, line, target, group)
 	group = group:lower()

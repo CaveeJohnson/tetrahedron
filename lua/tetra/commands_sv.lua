@@ -1,5 +1,10 @@
 tetra.fail_sound = "buttons/button18.wav"
 
+local function fail(caller, ...)
+	tetra.chat (caller, tetra.warn_color, string.format(...))
+	tetra.sound(caller, tetra.fail_sound)
+end
+
 function tetra.commands.run(caller, cmd, args, line)
 	cmd = cmd:lower()
 
@@ -14,13 +19,11 @@ function tetra.commands.run(caller, cmd, args, line)
 
 	local call = function(res, err)
 		if valid and not IsValid(caller) then
-			return
+			return -- disconnected during privilege check
 		end
 
 		if res == false then
-			tetra.chat(caller, tetra.warn_color, string.format("Access Denied: %s.", err or "You do not have the correct privilige"))
-			tetra.sound(caller, tetra.fail_sound)
-			return
+			return fail(caller, "Access Denied: %s.", err and err:gsub("^(%l)", string.upper) or "You do not have the privilige for this command")
 		end
 
 		local pass = {}
@@ -30,9 +33,7 @@ function tetra.commands.run(caller, cmd, args, line)
 				local optional = v:isOptional()
 
 				if not args[i] and not optional then
-					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) is missing and is not optional.", v.name or i, i))
-					tetra.sound(caller, tetra.fail_sound)
-					return
+					return fail(caller, "Argument '%s' (#%d) is missing and is not optional.", v.name or i, i)
 				end
 
 				res, err = v:doParse(args[i], caller)
@@ -45,9 +46,7 @@ function tetra.commands.run(caller, cmd, args, line)
 				end
 
 				if not res and not optional then
-					tetra.chat(caller, tetra.warn_color, string.format("Argument '%s' (#%d) %s.", v.name or i, i, err or "was of incorrect type and is not optional"))
-					tetra.sound(caller, tetra.fail_sound)
-					return
+					return fail(caller, "Argument '%s' (#%d) %s.", v.name or i, i, err or "was of incorrect type and is not optional")
 				end
 
 				table.insert(pass, res or false)
@@ -62,12 +61,16 @@ function tetra.commands.run(caller, cmd, args, line)
 		end
 
 		res, err = pcall(function()
-			res, err = cmd_obj.callback(caller, line, unpack(pass))
+			res, err, why = cmd_obj.callback(caller, line, unpack(pass))
 
 			if res == false then
 				tetra.chat(caller, tetra.warn_color, err)
 				tetra.sound(caller, tetra.fail_sound)
 				hook.Run("Tetra_CommandFailed", caller, line, pass, err)
+			elseif err == false then
+				tetra.chat(caller, tetra.warn_color, why)
+				tetra.sound(caller, tetra.fail_sound)
+				hook.Run("Tetra_CommandFailed", caller, line, pass, why)
 			else
 				tetra.logf("%s called command '%s' with line '%s'", IsValid(caller) and caller or tetra.getConsoleName(), cmd, line)
 				hook.Run("Tetra_CommandSuccess", caller, line, pass)

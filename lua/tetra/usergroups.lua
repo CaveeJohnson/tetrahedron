@@ -7,7 +7,29 @@ local groups = tetra.users.groups or {
 }
 tetra.users.groups = groups
 
--- TODO: load 'groups' file, management etc
+do
+	local trash = {
+		user = true,
+		admin = true,
+		superadmin = true,
+	}
+
+	function tetra.users.registerGroup(group, inherits, notOurs)
+		if SERVER then
+			tetra.rpc(nil, "tetra.users.registerGroup", group, inherits, notOurs)
+		end
+
+		local exists = groups[group]
+		groups[group] = inherits
+
+		if not tetra.cami or notOurs or trash[group] then return end
+
+		if exists then
+			CAMI.UnregisterUsergroup(group, tetra.cami.token)
+		end
+		CAMI.RegisterUsergroup({Name = group, Inherits = inherits}, tetra.cami.token)
+	end
+end
 
 function tetra.users.groupInherits(group, target, level)
 	if group == target then return true end
@@ -35,6 +57,10 @@ local meta = debug.getregistry().Player
 function meta:hasUserGroup(target, ignoreSafeguards)
 	target = target:lower()
 	if target == "user" then return true end
+
+	if SERVER and not self:IsFullyAuthenticated() then
+		return false
+	end
 
 	if not groups[target] and not ignoreSafeguards then
 		local info = debug.getinfo(2)
@@ -72,109 +98,3 @@ end
 function meta:IsSuperAdmin(ignoreSafeguards)
 	return self:hasUserGroup("superadmin", ignoreSafeguards)
 end
-
-
-if CLIENT then return end
-
-local authed = tetra.users.authed or {}
-tetra.users.authed = authed
-
-function tetra.users.auth(ply, group)
-	authed[ply] = true
-
-	hook.Run("Tetra_Authed", ply, group)
-end
-
-local user_reference = tetra.users.reference or {}
-tetra.users.reference = user_reference
-
-local loaded = false
-
-local USERS_FILE = "tetra/users.txt"
-local timestamp = 0
-
-file.CreateDir("tetra")
-
-function tetra.users.loadFile()
-	local file_ts = file.Time(USERS_FILE, "DATA")
-	if file_ts == timestamp and loaded then return false end
-
-	timestamp = file_ts
-	loaded = true
-
-	local raw = file.Read(USERS_FILE, "DATA")
-	if not raw then return false end
-
-	user_reference = {}
-	for _, v in ipairs(raw:Split("\n")) do
-		local sid64, group = v:match("^%s-(%d+);(%w-)%-?$")
-
-		if sid64 and group then
-			user_reference[sid64] = group
-		end
-	end
-
-	return true
-end
-
-function tetra.users.saveFile()
-	local write = ""
-	for sid64, group in pairs(user_reference) do
-		write = write .. sid64 .. ";" .. group .. "\n"
-	end
-
-	file.Write(USERS_FILE, write:Trim())
-end
-
-function tetra.users.getGroup(sid64)
-	tetra.users.loadFile()
-
-	return user_reference[sid64] or "user"
-end
-
-function tetra.users.setGroup(sid64, group, dontSave)
-	local ply
-	if isentity(sid64) then
-		ply = sid64
-		sid64 = sid64:SteamID64()
-	else
-		ply = player.GetBySteamID64(sid64)
-	end
-
-	if group == "user" then
-		group = nil
-	elseif group then
-		group = group:lower()
-	end
-
-	local new = group or "user"
-	local old = user_reference[sid64] or "user"
-
-	user_reference[sid64] = group
-
-	if IsValid(ply) then
-		ply:SetUserGroup(new)
-
-		if tetra.cami then
-			CAMI.SignalUserGroupChanged(ply, old, new, tetra.cami.token)
-		end
-	elseif tetra.cami then
-		CAMI.SignalSteamIDUserGroupChanged(util.SteamIDFrom64(sid64), old, new, tetra.cami.token)
-	end
-
-	if not dontSave then
-		tetra.logf("saving usergroup for '%s' (%s); new group is '%s'", IsValid(ply) and ply:Nick() or "unknown", sid64, new)
-		tetra.users.saveFile()
-	end
-end
-
-function tetra.users.onAuthed(ply)
-	local sid64 = ply:SteamID64()
-	local group = tetra.users.getGroup(sid64)
-
-	ply:SetUserGroup(group, true)
-
-	tetra.users.auth(ply, group)
-	tetra.logf("authed user '%s' (%s); usergroup '%s'", ply:Nick(), sid64, group or "user")
-end
-hook.Add("PlayerInitialSpawn", "tetra", tetra.users.onAuthed)

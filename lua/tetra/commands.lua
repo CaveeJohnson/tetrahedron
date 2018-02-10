@@ -152,7 +152,7 @@ function tetra.commands.register(cmd, callback, default_group)
 	return obj
 end
 
--- not finished
+-- TODO:
 if CLIENT then
 
 	function tetra.commands.insert(cmd, data)

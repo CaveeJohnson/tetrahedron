@@ -30,9 +30,6 @@ do
 	incl_sh("tetra/privs.lua")
 
 	incl_sh("tetra/cami_support.lua")
-
-	incl_sh("tetra/commands/core.lua")
-	incl_sh("tetra/commands/test.lua")
 end
 
 do
@@ -41,9 +38,17 @@ end
 
 do
 	incl_sv("tetra/rpc.lua")
+
+	incl_sv("tetra/usergroups_sv.lua")
 	incl_sv("tetra/commands_sv.lua")
 
 	incl_sv("tetra/wrappers/aowl.lua")
+end
+
+local files = file.Find("tetra/commands/*.lua", "LUA")
+for _, v in ipairs(files) do
+	incl_sh("tetra/commands/" .. v)
+	tetra.logf("loaded %s command file", v:gsub("%.lua", ""))
 end
 
 tetra.logf("startup done!")
