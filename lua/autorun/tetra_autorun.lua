@@ -30,6 +30,8 @@ do
 	incl_sh("tetra/privs.lua")
 
 	incl_sh("tetra/cami_support.lua")
+
+	incl_sh("tetra/lua_find.lua")
 end
 
 do

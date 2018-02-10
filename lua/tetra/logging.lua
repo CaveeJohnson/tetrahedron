@@ -1,7 +1,8 @@
 tetra.main_color = Color(5, 224, 252)
 tetra.warn_color = Color(231, 236, 163)
+tetra.log_color  = Color(157, 225, 154)
 
-tetra.LOG  = {nil      , Color(157, 225, 154)}
+tetra.LOG  = {nil      , tetra.log_color}
 tetra.WARN = {"warning", tetra.warn_color}
 
 do
@@ -77,6 +78,19 @@ function tetra.chat(ply, ...)
 		chat.AddText(...)
 	else
 		tetra.rpc(ply, "chat.AddText", ...)
+	end
+end
+
+function tetra.url(ply, ...)
+	if isentity(ply) and not ply:IsValid() then -- console
+		return
+	end
+
+	local url = string.format(...)
+	if CLIENT then
+		gui.OpenURL(url)
+	else
+		tetra.rpc(ply, "gui.OpenURL", url)
 	end
 end
 

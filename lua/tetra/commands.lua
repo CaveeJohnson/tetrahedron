@@ -19,6 +19,7 @@ do
 	tetra.isSet (argMeta, "optional", "boolean")
 	tetra.hasSet(argMeta, "fuzzyMatching", "boolean")
 	tetra.getSet(argMeta, "matchOnce", "boolean", "must")
+	tetra.getSet(argMeta, "defaultToCaller", "boolean", "should")
 	tetra.getSet(argMeta, "filter", "function")
 	tetra.getSet(argMeta, "name", "string")
 	tetra.getSet(argMeta, "description", "string")
@@ -150,19 +151,4 @@ function tetra.commands.register(cmd, callback, default_group)
 	end
 
 	return obj
-end
-
--- TODO:
-if CLIENT then
-
-	function tetra.commands.insert(cmd, data)
-
-	end
-
-else
-
-	function tetra.commands.sendToClient(ply)
-
-	end
-
 end

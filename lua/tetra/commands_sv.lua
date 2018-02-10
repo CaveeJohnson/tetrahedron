@@ -31,14 +31,18 @@ function tetra.commands.run(caller, cmd, args, line)
 		if not cmd_obj.ignoreArguments and #cmd_obj.arguments ~= 0 then
 			for i, v in ipairs(cmd_obj.arguments) do
 				local optional = v:isOptional()
+				local arg = args[i]
 
-				if not args[i] and not optional then
+				if not arg and v.argtype == TETRA_ARG_PLAYER and v:shouldDefaultToCaller() then
+					res = tetra.playerObjectFromTable{caller} -- default to caller
+				elseif not arg and not optional then
 					return fail(caller, "Argument '%s' (#%d) is missing and is not optional.", v.name or i, i)
+				else
+					res, err = v:doParse(arg, caller)
 				end
 
-				res, err = v:doParse(args[i], caller)
 				if res and v.filter then
-					local fres, ferr = pcall(v.filter, args[i], res)
+					local fres, ferr = pcall(v.filter, arg, res)
 
 					if not fres or ferr then -- filter can fail it, not magically make new data, would be too weird
 						res, err = nil, ferr
@@ -102,7 +106,7 @@ function tetra.commands.cmd(ply, _, args, line)
 end
 concommand.Add("tetra", tetra.commands.cmd) -- TODO: autocomplete (aids)
 
-tetra.commands.prefix = "[%.]"
+tetra.commands.prefix = "[%.!/]"
 local string_pattern  = "[\"|']"
 local escape_pattern  = "[\\]"
 local delim_pattern   = "[ ]"

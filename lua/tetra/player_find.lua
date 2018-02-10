@@ -2,8 +2,22 @@ local playerMeta = {isPlayerObject = true}
 
 tetra.getSet(playerMeta, "multiple", "boolean", "contains")
 
+tetra.multiplepeople_color = Color(72, 125, 175)
+
 function playerMeta:insertPlayersForDisplay(tbl)
 	local c = #self.players
+
+	if c == player.GetCount() then
+		table.insert(tbl, tetra.multiplepeople_color)
+		table.insert(tbl, "everyone")
+
+		return
+	elseif c > 10 then
+		table.insert(tbl, tetra.multiplepeople_color)
+		table.insert(tbl, "multiple people")
+
+		return
+	end
 
 	for i, v in ipairs(self.players) do
 		table.insert(tbl, team.GetColor(v:Team()))
@@ -12,6 +26,32 @@ function playerMeta:insertPlayersForDisplay(tbl)
 		if i ~= c then
 			table.insert(tbl, ", ")
 		end
+	end
+end
+
+function playerMeta:setPlayers(tbl)
+	self.players = tbl
+	self:setMultiple(#tbl > 0)
+end
+
+function playerMeta:filter(callback)
+	local new, good = {}, false
+	for _, v in ipairs(self.players) do
+		if callback(v) then
+			table.insert(new, v)
+			good = true
+		end
+	end
+
+	self.players = new
+	self:setMultiple(#new > 0)
+
+	return good
+end
+
+function playerMeta:forEach(callback)
+	for _, v in ipairs(self.players) do
+		callback(v)
 	end
 end
 
@@ -33,6 +73,30 @@ local special = {
 			end
 		end
 		return us
+	end,
+
+	["#admins"]   = function(caller)
+		if not IsValid(caller) or not caller:IsAdmin() then return end
+
+		local plys = {}
+		for _, v in ipairs(player.GetAll()) do
+			if v:IsAdmin() then
+				table.insert(plys, v)
+			end
+		end
+		return plys
+	end,
+
+	["#sadmins"]  = function(caller)
+		if not IsValid(caller) or not caller:IsSuperAdmin() then return end
+
+		local plys = {}
+		for _, v in ipairs(player.GetAll()) do
+			if v:IsSuperAdmin() then
+				table.insert(plys, v)
+			end
+		end
+		return plys
 	end,
 
 	["#me"]      = function(caller)
@@ -90,5 +154,15 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 
 	obj:setMultiple(#players > 1)
 
+	return obj
+end
+
+function tetra.playerObjectFromTable(players)
+	local obj = {
+		players = players,
+	}
+	setmetatable(obj, m)
+
+	obj:setMultiple(#players > 1)
 	return obj
 end
