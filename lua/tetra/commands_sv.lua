@@ -8,7 +8,8 @@ end
 function tetra.commands.run(caller, cmd, args, line)
 	cmd = cmd:lower()
 
-	local cmd_obj = tetra.commands.get(cmd)
+	local cmd_obj
+	cmd_obj, cmd = tetra.commands.get(cmd)
 	if not cmd_obj then return end
 
 	local valid = IsValid(caller)
@@ -141,7 +142,7 @@ function tetra.commands.parse(data, delim)
 		end
 	end
 
-	if current:Trim():len() ~= 0 then
+	if utf8.len(current:Trim()) ~= 0 then
 		table.insert(ret, current:Trim())
 	end
 

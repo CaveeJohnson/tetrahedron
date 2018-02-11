@@ -17,7 +17,6 @@ do
 	:setIgnoreArguments(true)
 end
 
-
 do
 	tetra.commands.register("setfov,fov", function(caller, _, target, fov)
 		for _, ply in ipairs(target.players) do
@@ -165,7 +164,6 @@ do
 		:setOptional(true)
 end
 
-
 do
 	tetra.commands.register("revive,resuscitate,resurrect", function(caller, _, target)
 		for _, ply in ipairs(target.players) do
@@ -221,4 +219,66 @@ do
 
 	:setFullName("Suicide")
 	:setDescription("Commit suicide.")
+end
+
+do
+	tetra.commands.register("sethealth,sethp,health,hp", function(caller, _, target, health)
+		for _, ply in ipairs(target.players) do
+			ply:SetHealth(health)
+		end
+
+		tetra.echo(nil, caller, " set ", target, "'s health to ", health, ".")
+	end, "admin")
+
+	:setFullName("Set Health")
+	:setDescription("Set the health of players.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to slay silently.")
+	:addArgument(TETRA_ARG_NUMBER)
+		:setName("Health")
+		:setDescription("The health to set.")
+end
+
+
+do
+	tetra.commands.register("setarmor,armor", function(caller, _, target, armor)
+		for _, ply in ipairs(target.players) do
+			ply:SetArmor(armor)
+		end
+
+		tetra.echo(nil, caller, " set ", target, "'s armor to ", armor, ".")
+	end, "admin")
+
+	:setFullName("Set Armor")
+	:setDescription("Set the armor of players.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to slay silently.")
+	:addArgument(TETRA_ARG_NUMBER)
+		:setName("Armor")
+		:setDescription("The armor to set.")
+end
+
+do
+	tetra.commands.register("stripweapons,strip", function(caller, _, target)
+		for _, ply in pairs(target.players) do
+			ply:StripWeapons()
+		end
+
+		tetra.echo(nil, caller, " stripped ", target, " of their weapons.")
+	end, "admin")
+
+	:setFullName("Strip Weapons")
+	:setDescription("Strip a player of their weapons.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to strip weapons from.")
+		:setDefaultToCaller(true)
 end

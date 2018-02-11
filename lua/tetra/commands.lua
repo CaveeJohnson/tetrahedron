@@ -97,7 +97,7 @@ function tetra.commands.get(cmd)
 	local real = alias_list[cmd]
 	if not real then return end
 
-	return list[real]
+	return list[real], real
 end
 
 local m = {__index = cmdMeta}
@@ -126,7 +126,7 @@ function tetra.commands.register(cmd, callback, default_group)
 
 	tetra.privs.register {
 		name = primary,
-		root = default_group,
+		root = default_group or "admin",
 		desc = string.format("Privilege for the '%s' command.", primary),
 	}
 
