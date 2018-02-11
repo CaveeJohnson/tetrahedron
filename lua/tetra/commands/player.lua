@@ -282,3 +282,108 @@ do
 		:setDescription("The player(s) to strip weapons from.")
 		:setDefaultToCaller(true)
 end
+
+do -- give weapon
+	local prefixes = {
+		"",
+		"weapon_",
+		"basewars_",
+		"fas2_",
+		"cw_",
+	}
+
+	local hl2_weps = {
+		"weapon_357",
+		"weapon_alyxgun",
+		"weapon_annabelle",
+		"weapon_ar2",
+		"weapon_brickbat",
+		"weapon_bugbait",
+		"weapon_crossbow",
+		"weapon_crowbar",
+		"weapon_frag",
+		"weapon_physcannon",
+		"weapon_pistol",
+		"weapon_rpg",
+		"weapon_shotgun",
+		"weapon_smg1",
+		"weapon_striderbuster",
+		"weapon_stunstick",
+	}
+	for _, v in ipairs(hl2_weps) do
+		hl2_weps[v] = true
+	end
+
+	local real = {}
+
+	tetra.commands.register("give,weapon,giveweapon", function(caller, _, class, target)
+		local name
+		for _, v in ipairs(prefixes) do
+			name = v .. class
+			if hl2_weps[name] or weapons.GetStored(name) then break end
+		end
+
+		if real[name] == nil then
+			local ent = ents.Create(name)
+			if not IsValid(ent) then
+				return false, string.format("class '%s' exists but could not be spawned", name)
+			end
+
+			ent:Remove()
+			real[name] = true
+		end
+
+		tetra.echo(nil, caller, " gave ", target, " a '", name, "'.")
+
+		for _, v in ipairs(target.players) do
+			if v:HasWeapon(name) then v:StripWeapon(name) end
+
+			local wep = v:Give(name, true)
+			if IsValid(wep) then
+				v:SelectWeapon(name)
+
+				if wep.GetPrimaryAmmoType and wep.GetMaxClip1 then
+					local ammo_type = wep:GetPrimaryAmmoType()
+					local max_clip  = wep:GetMaxClip1()
+					local to_give   = math.max(max_clip * 10, 10)
+					v:SetAmmo(math.max(v:GetAmmoCount(ammo_type), to_give), ammo_type)
+
+					if max_clip == -1 then
+						wep:SetClip1(-1) -- giving with no ammo bugs ammo counter
+					end
+				end
+				if wep.GetSecondaryAmmoType and wep.GetMaxClip2 then
+					local ammo_type = wep:GetSecondaryAmmoType()
+					local max_clip  = wep:GetMaxClip2()
+					local to_give   = math.max(max_clip * 10, 10)
+					v:SetAmmo(math.max(v:GetAmmoCount(ammo_type), to_give), ammo_type)
+
+					if max_clip == -1 then
+						wep:SetClip2(-1) -- giving with no ammo bugs ammo counter
+					end
+				end
+			end
+		end
+	end, "admin")
+
+	:setFullName("Give Weapon")
+	:setDescription("Give a player a specific weapon class.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("Class Name")
+		:setDescription("The class of the weapon to give.")
+		:setFilter(function(_, class)
+			if hl2_weps[class] or hl2_weps["weapon_" .. class] then return end
+			for _, v in ipairs(prefixes) do
+				if weapons.GetStored(v .. class) then return end
+			end
+
+			return string.format("'%s' is not a valid weapon class", class)
+		end)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to give the weapon to.")
+		:setDefaultToCaller(true)
+end

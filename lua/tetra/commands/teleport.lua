@@ -10,6 +10,10 @@ function tetra.teleport.pushBackPos(ply, pos)
 	table.insert(stacks[sid64], pos)
 end
 
+hook.Add("PlayerDisconnected", "tetra.teleport.back", function(ply)
+	tetra.teleport.pushBackPos(ply, ply:GetPos())
+end)
+
 function tetra.teleport.popBackPos(ply)
 	local sid64 = ply:SteamID64()
 
@@ -46,25 +50,64 @@ function tetra.teleport.lookAt(from, to) -- would be nice to lerp
 	from:SetEyeAngles(look_at:Angle())
 end
 
-function tetra.teleport.doTeleport(from, to, last_pos, next_pos)
-	if from:IsPlayer() then
-		if not from:Alive() then from:Spawn()       end
-		if from:InVehicle() then from:ExitVehicle() end
+do
+	sound.Add({
+		name    = "tetra.teleport.1",
+		channel = CHAN_AUTO,
+		volume  = 0.5,
+		level   = 100,
+		pitch   = {100, 125},
+		sound   = {"player/resistance_medium1.wav", "player/resistance_medium2.wav", "player/resistance_medium3.wav"}
+	})
 
-		if last_pos then tetra.teleport.pushBackPos(from, last_pos) end
-	end
+	sound.Add({
+		name    = "tetra.teleport.2",
+		channel = CHAN_AUTO,
+		volume  = 0.7,
+		level   = 100,
+		pitch   = {90, 100},
+		sound   = {"player/taunt_bumper_car_quit.wav"}
+	})
 
-	if next_pos then
-		from:SetPos(next_pos)
+	sound.Add({
+		name    = "tetra.teleport.close.1",
+		channel = CHAN_AUTO,
+		volume  = 0.7,
+		level   = 100,
+		pitch   = {100, 110},
+		sound   = {"replay/cameracontrolerror.wav"}
+	})
 
-		from:EmitSound("player/taunt_bumper_car_quit.wav", 75, 100, 0.7)
-		from:EmitSound(string.format("player/resistance_medium%d.wav", math.random(1, 3)), 75, math.random(100, 125), 0.5)
-	else
-		from:EmitSound("misc/talk.wav", 75, 90, 0.6)
-	end
+	sound.Add({
+		name    = "tetra.teleport.close.2",
+		channel = CHAN_AUTO,
+		volume  = 0.4,
+		level   = 100,
+		pitch   = {90, 95},
+		sound   = {"misc/talk.wav"}
+	})
 
-	if from:IsPlayer() then
-		tetra.teleport.lookAt(from, to)
+	function tetra.teleport.doTeleport(from, to, last_pos, next_pos)
+		if from:IsPlayer() then
+			if not from:Alive() then from:Spawn()       end
+			if from:InVehicle() then from:ExitVehicle() end
+
+			if last_pos then tetra.teleport.pushBackPos(from, last_pos) end
+		end
+
+		if next_pos then
+			from:SetPos(next_pos)
+
+			from:EmitSound("tetra.teleport.1")
+			from:EmitSound("tetra.teleport.2")
+		else
+			from:EmitSound("tetra.teleport.close.1")
+			from:EmitSound("tetra.teleport.close.2")
+		end
+
+		if from:IsPlayer() then
+			tetra.teleport.lookAt(from, to)
+		end
 	end
 end
 
@@ -125,6 +168,7 @@ end
 tetra.commands.register("go,goto", function(caller, _, target)
 	-- TODO: inheritence / group based 'dont disturb'
 
+	tetra.echo(nil, caller, " teleported to ", target.players[1], ".")
 	return tetra.teleport.sendPlayer(caller, target.players[1]) -- don't match once but we do just go to the first one
 end, "admin")
 
@@ -139,6 +183,8 @@ end, "admin")
 tetra.commands.register("bring,acquire", function(caller, _, target)
 	-- TODO: inheritence / group based 'dont disturb'
 
+	tetra.echo(nil, caller, " teleported ", target, " to them.")
+
 	for _, v in ipairs(target.players) do
 		tetra.teleport.sendPlayer(v, caller)
 	end
@@ -152,25 +198,35 @@ end, "admin")
 	:setDescription("The player(s) to bring to you.")
 
 
-tetra.commands.register("back,return", function(caller)
-	local back_pos, back_left = tetra.teleport.popBackPos(caller)
+tetra.commands.register("back,return", function(caller, _, target)
+	local target_ply = target.players[1]
+	local forSelf = target_ply == caller
+	local back_pos, back_left = tetra.teleport.popBackPos(target_ply)
 
 	if back_pos then
-		caller:SetPos(back_pos)
+		target_ply:SetPos(back_pos)
 
 		if back_left > 0 then
-			tetra.chat(caller, tetra.string_color, "Sending you back, ", tetra.number_color, back_left, tetra.string_color, " jumps to go.")
+			tetra.chat(target_ply, tetra.string_color, "Sending you back, ", tetra.number_color, back_left, tetra.string_color, " jumps to go.")
+			if not forSelf then tetra.chat(caller, tetra.string_color, "Sending them back, ", tetra.number_color, back_left, tetra.string_color, " jumps to go.") end
 		else
-			tetra.chat(caller, tetra.string_color, "Sending you back, end of the line.")
+			tetra.chat(target_ply, tetra.string_color, "Sending you back, end of the line.")
+			if not forSelf then tetra.chat(caller, tetra.string_color, "Sending them back, end of the line.") end
 		end
 	else
-		return false, "Nowhere to go back to!"
+		return false, forSelf and "Nowhere to go back to!" or "Nowhere to send them back to!"
 	end
 end, "admin")
 
 :setFullName("Back")
 :setDescription("Teleport back to your previous location.")
 :setSilent(true)
+
+:addArgument(TETRA_ARG_PLAYER)
+	:setName("Target")
+	:setDescription("The player to send back.")
+	:setMatchOnce(true)
+	:setDefaultToCaller(true)
 
 do
 	sound.Add({
@@ -179,7 +235,7 @@ do
 		volume  = 0.4,
 		level   = 90,
 		pitch   = {150, 155},
-		sound   = {")player/suit_sprint.wav"}
+		sound   = {"player/suit_sprint.wav"}
 	})
 
 	sound.Add({
@@ -188,7 +244,7 @@ do
 		volume  = 1,
 		level   = 100,
 		pitch   = {105, 120},
-		sound   = {")passtime/projectile_swoosh2.wav", ")passtime/projectile_swoosh3.wav", ")passtime/projectile_swoosh4.wav"}
+		sound   = {"passtime/projectile_swoosh2.wav", "passtime/projectile_swoosh3.wav", "passtime/projectile_swoosh4.wav"}
 	})
 
 	sound.Add({
@@ -197,7 +253,7 @@ do
 		volume  = 1,
 		level   = 100,
 		pitch   = 100,
-		sound   = {")npc/dog/dog_footstep_run8.wav", ")npc/dog/dog_footstep_run6.wav"}
+		sound   = {"npc/dog/dog_footstep_run8.wav", "npc/dog/dog_footstep_run6.wav"}
 	})
 
 	local res = {}

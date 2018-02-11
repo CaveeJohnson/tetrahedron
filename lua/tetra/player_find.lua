@@ -17,6 +17,11 @@ function playerMeta:insertPlayersForDisplay(tbl)
 		table.insert(tbl, "multiple people")
 
 		return
+	elseif c == 1 and self.players[1] == self.caller then
+		table.insert(tbl, tetra.multiplepeople_color)
+		table.insert(tbl, "themself")
+
+		return
 	end
 
 	for i, v in ipairs(self.players) do
@@ -149,6 +154,7 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 
 	local obj = {
 		players = players,
+		caller = caller,
 	}
 	setmetatable(obj, m)
 

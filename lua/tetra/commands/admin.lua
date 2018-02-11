@@ -18,9 +18,9 @@ do
 	:addArgument(TETRA_ARG_STRING)
 		:setName("User Group")
 		:setDescription("The target's new usergroup.")
-		:setFilter(function(data, group)
+		:setFilter(function(_, group)
 			if not tetra.users.groups[group:lower()] then
-				return string.format("'%s' is not a valid usergroup", group)
+				return string.format("'%s' is not a valid usergroup", group:lower())
 			end
 		end)
 end
@@ -109,22 +109,20 @@ do
 	tetra.commands.register("bot", function(caller, _, mode, arg)
 		if mode == "add" or not mode then
 			player.CreateNextBot(arg or ("BOT " .. bot_names[math.random(1, #bot_names)]))
-		else
-			if mode == "kick" then
-				for _, ply in pairs(player.GetBots()) do
-					ply:Kick("Kicking every bot")
-				end
-			elseif mode == "zombie" then
-				local zombie = tobool(arg)
-				game.ConsoleCommand("bot_zombie " .. (zombie and 1 or 0) .. "\n")
-
-				tetra.echo(nil, caller, zombie and " enabled " or " disabled ", "bot zombie mode.")
+		elseif mode == "kick" then
+			for _, ply in ipairs(player.GetBots()) do
+				ply:Kick("Kicking every bot")
 			end
+		elseif mode == "zombie" then
+			local zombie = tobool(arg)
+			game.ConsoleCommand("bot_zombie " .. (zombie and 1 or 0) .. "\n")
+
+			tetra.echo(nil, caller, zombie and " enabled " or " disabled ", "bot zombie mode.")
 		end
 	end, "admin")
 
 	:setFullName("Bot")
-	:setDescription("Bot operations")
+	:setDescription("Bot operations.")
 	:setConsoleAllowed(true)
 
 	:addArgument(TETRA_ARG_STRING)
@@ -140,4 +138,23 @@ do
 		:setName("Argument")
 		:setDescription("Depends on the selected mode.")
 		:setOptional(true)
+end
+
+do
+	tetra.commands.register("cleanup,clean", function(caller, _, target)
+		tetra.echo(nil, caller, " cleaned up ", target, "'s entities.")
+		cleanup.CC_Cleanup(target.players[1], nil, {}) -- doesn't check for nil args, completely fucking retarded
+		-- the entire cleanup system is retarded tbh, just be glad bw18 makes UniqueID return SID64
+		-- because in the default system collisions can happen and some random russian can delete your shit
+	end, "admin")
+
+	:setFullName("Cleanup")
+	:setDescription("Clean the props and entities of a specific player.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player to cleanup.")
+		:setMatchOnce(true)
+		:setDefaultToCaller(true)
 end
