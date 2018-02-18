@@ -29,12 +29,12 @@ function tetra.commands.run(caller, cmd, args, line)
 
 		local pass = {}
 		local bottom = 0
-		if not cmd_obj.ignoreArguments and #cmd_obj.arguments ~= 0 then
+		if not cmd_obj:shouldIgnoreArguments() and cmd_obj:getArgumentCount() ~= 0 then
 			for i, v in ipairs(cmd_obj.arguments) do
 				local optional = v:isOptional()
 				local arg = args[i]
 
-				if not arg and v.argtype == TETRA_ARG_PLAYER and v:shouldDefaultToCaller() then
+				if not arg and v.argtype == TETRA_ARG_PLAYER and v:shouldDefaultToCaller() and IsValid(caller) then
 					res = tetra.playerObjectFromTable{caller} -- default to caller
 				elseif not arg and not optional then
 					return fail(caller, "Argument '%s' (#%d) is missing and is not optional.", v.name or i, i)
@@ -43,7 +43,7 @@ function tetra.commands.run(caller, cmd, args, line)
 				end
 
 				if res and v.filter then
-					local fres, ferr = pcall(v.filter, arg, res)
+					local fres, ferr = pcall(v.filter, arg, res, caller)
 
 					if not fres or ferr then -- filter can fail it, not magically make new data, would be too weird
 						res, err = nil, ferr
@@ -59,14 +59,17 @@ function tetra.commands.run(caller, cmd, args, line)
 			end
 		end
 
-		if not cmd_obj.ignoreArguments and cmd_obj:isVariadic() then
+		if not cmd_obj:shouldIgnoreArguments() and cmd_obj:isVariadic() then
 			for i = bottom, #args do
 				table.insert(pass, args[i])
 			end
 		end
 
+		local elua = cmd_obj:hasEasyluaEnvironment()
 		res, err = pcall(function()
-			res, err, why = cmd_obj.callback(caller, line, unpack(pass))
+			if elua and easylua then easylua.Start(caller) end
+				res, err, why = cmd_obj.callback(caller, line, unpack(pass))
+			if elua and easylua then easylua.End() end
 
 			if res == false then
 				tetra.chat(caller, tetra.warn_color, err)

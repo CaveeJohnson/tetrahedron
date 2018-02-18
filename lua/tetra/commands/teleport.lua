@@ -116,8 +116,6 @@ function tetra.teleport.sendPlayer(from, to)
 		return true -- self goto
 	elseif not (IsValid(from) and IsValid(to)) then
 		return false, "invalid entity"
-	elseif not to:IsInWorld() then
-		return false, "entity not in world"
 	end
 
 	local target_pos = to:GetPos()
@@ -168,8 +166,12 @@ end
 tetra.commands.register("go,goto", function(caller, _, target)
 	-- TODO: inheritence / group based 'dont disturb'
 
-	tetra.echo(nil, caller, " teleported to ", target.players[1], ".")
-	return tetra.teleport.sendPlayer(caller, target.players[1]) -- don't match once but we do just go to the first one
+	local ok, err = tetra.teleport.sendPlayer(caller, target.players[1]) -- don't match once but we do just go to the first one
+	if ok then
+		tetra.echo(nil, caller, " teleported to ", target.players[1], ".")
+	end
+
+	return ok, err
 end, "admin")
 
 :setFullName("Goto")
@@ -180,22 +182,58 @@ end, "admin")
 	:setDescription("The player to teleport to.")
 
 
-tetra.commands.register("bring,acquire", function(caller, _, target)
+tetra.commands.register("gotopos,pos", function(caller, _, x, y, z)
+	tetra.echo(nil, caller, " teleported to ", x, ", ", y, ", ", z, ".")
+	caller:SetPos(Vector(x, y, z))
+end, "admin")
+
+:setFullName("Goto")
+:setDescription("Teleport yourself to a player.")
+
+:addArgument(TETRA_ARG_NUMBER)
+	:setName("x")
+	:setDescription("The x coordinate to go to.")
+
+:addArgument(TETRA_ARG_NUMBER)
+	:setName("y")
+	:setDescription("The y coordinate to go to.")
+
+:addArgument(TETRA_ARG_NUMBER)
+	:setName("z")
+	:setDescription("The z coordinate to go to.")
+
+
+tetra.commands.register("send,bring,acquire", function(caller, _, from, to)
 	-- TODO: inheritence / group based 'dont disturb'
 
-	tetra.echo(nil, caller, " teleported ", target, " to them.")
+	tetra.echo(nil, caller, " teleported ", from, " to ", to, ".")
 
-	for _, v in ipairs(target.players) do
-		tetra.teleport.sendPlayer(v, caller)
+	local fail = false
+	for _, v in ipairs(from.players) do
+		local ok = tetra.teleport.sendPlayer(v, to.players[1])
+
+		if not ok then
+			fail = true
+		end
+	end
+
+	if fail then
+		return false, "Failed to send all targets"
 	end
 end, "admin")
 
-:setFullName("Bring")
-:setDescription("Teleport players to you.")
+:setFullName("Send")
+:setDescription("Teleport players to another player.")
 
 :addArgument(TETRA_ARG_PLAYER)
-	:setName("Target")
-	:setDescription("The player(s) to bring to you.")
+	:setName("From")
+	:setDescription("The player(s) to send to the other player.")
+
+:addArgument(TETRA_ARG_PLAYER)
+	:setName("To")
+	:setDescription("The player to send the other player(s) to.")
+	:setMatchOnce(true)
+	:setDefaultToCaller(true)
 
 
 tetra.commands.register("back,return", function(caller, _, target)

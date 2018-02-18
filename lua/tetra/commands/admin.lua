@@ -158,3 +158,109 @@ do
 		:setMatchOnce(true)
 		:setDefaultToCaller(true)
 end
+
+do
+	local whitelist = {
+		"sv_cheats",
+	}
+
+	tetra.commands.register("replicate", function(caller, _, cvar, value, target)
+		if not GetNetChannel and not NetChannel and not CNetChan then
+			pcall(require, "cvar3")
+		end
+
+		local func = caller.SetConVar or caller.ReplicateData
+		if not func then return false, "Module CVar3 is missing or failed to load" end
+
+		target:forEach(func, cvar, value)
+	end, "admin")
+
+	:setFullName("Replicate ConVar")
+	:setDescription("Change the value of a replicated convar for a specific client.")
+	:setSilent(true)
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("CVar Name")
+		:setDescription("The convar to change the value of.")
+		:setFilter(function(_, cvar, caller)
+			if not (whitelist[cvar] or (not IsValid(caller) or caller:IsSuperAdmin())) then
+				return "'%s' is not on the convar whitelist for admins"
+			end
+		end)
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("Value")
+		:setDescription("The new value to replicate.")
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to replicate the convar on.")
+		:setDefaultToCaller(true)
+		:setFilter(function(_, target, caller)
+			if not (target:isCallerOnly() or (not IsValid(caller) or caller:IsSuperAdmin())) then
+				return "only superadmins can target other players"
+			end
+		end)
+end
+
+do
+	tetra.commands.register("rcon", function(caller, line)
+		game.ConsoleCommand(line .. "\n")
+	end, "superadmin")
+
+	:setFullName("Remote Console")
+	:setDescription("Execute a command on the server.")
+	:setIgnoreArguments(true)
+	:setSilent(true)
+end
+
+do
+	tetra.commands.register("cexec,cmd", function(caller, _, command, target)
+		command = command:gsub("%[%[", "\""):gsub("%]%]", "\"") -- no escaping fuckers.
+
+		for _, v in ipairs(target.players) do
+			v:SendLua(string.format([=[LocalPlayer():ConCommand([[%s]])]=], command)) -- can't use :ConCommand since it blocks lots of shit on server
+		end
+	end, "admin")
+
+	:setFullName("Client Execute")
+	:setDescription("Execute a command on a specific player.")
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("Command")
+		:setDescription("The command to call.")
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to run the command on.")
+		:setDefaultToCaller(true)
+		:setFilter(function(_, target, caller)
+			if not (target:isCallerOnly() or (not IsValid(caller) or caller:IsSuperAdmin())) then
+				return "only superadmins can target other players"
+			end
+		end)
+end
+
+do
+	tetra.commands.register("noclip", function(caller, _, target)
+		tetra.echo(nil, caller, " noclipped ", target, ".")
+
+		for _, v in ipairs(target.players) do
+			v:SetMoveType(MOVETYPE_NOCLIP)
+		end
+	end, "admin")
+
+	:setFullName("Noclip")
+	:setDescription("Force players to enter noclip.")
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to make noclip.")
+		:setDefaultToCaller(true)
+		:setFilter(function(_, target, caller)
+			if not (target:isCallerOnly() or (not IsValid(caller) or caller:IsSuperAdmin())) then
+				return "only superadmins can target other players"
+			end
+		end)
+end

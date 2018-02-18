@@ -60,7 +60,8 @@ do
 	tetra.isSet (cmdMeta, "silent", "boolean")
 	tetra.isSet (cmdMeta, "consoleAllowed", "boolean")
 	tetra.isSet (cmdMeta, "variadic", "boolean")
-	tetra.hasSet(cmdMeta, "ignoreArguments", "boolean")
+	tetra.hasSet(cmdMeta, "easyluaEnvironment", "boolean")
+	tetra.getSet(cmdMeta, "ignoreArguments", "boolean", "should")
 	tetra.getSet(cmdMeta, "fullName", "string")
 	tetra.getSet(cmdMeta, "callback", "function")
 	tetra.getSet(cmdMeta, "description", "string")
@@ -71,7 +72,7 @@ do
 
 	local m = {__index = argMeta}
 	function cmdMeta:addArgument(argtype)
-		if self.ignoreArguments then
+		if self:shouldIgnoreArguments() then
 			error("call to 'addArgument' when 'ignoreArguments' is set", 2)
 		end
 		self.argument_count = self.argument_count + 1

@@ -387,3 +387,90 @@ do -- give weapon
 		:setDescription("The player(s) to give the weapon to.")
 		:setDefaultToCaller(true)
 end
+
+do
+	local mapper = {
+		["#p"]       = "primary ammo",
+		["#s"]       = "secondary ammo",
+		ar2          = "AR2 ammo",
+		ar2altfire   = "combine ball(s)",
+		pistol       = "pistol ammo",
+		smg1         = "SMG ammo",
+		["357"]      = ".357 ammo",
+		xbowbolt     = "crossbow bolt(s)",
+		buckshot     = "shotgun ammo",
+		rpg_round    = "RPG round(s)",
+		smg1_grenade = "SMG grenade(s)",
+		grenade      = "grenade(s)",
+		slam         = "SLAM ammo"
+	}
+
+	tetra.commands.register("giveammo,ammo", function(caller, _, amount, type, target)
+		if type and not (type == "#p" or type == "#s") then
+			local id = tonumber(type)
+
+			if (id and not game.GetAmmoName(id)) or game.GetAmmoID(type) == -1 then
+				return false, "That is an invalid ammo type."
+			end
+		end
+
+		local ammo
+
+		if type then
+			if tonumber(type) then
+				ammo = game.GetAmmoName(type)
+			else
+				ammo = type
+			end
+		else
+			ammo = "#p"
+		end
+
+		for _, ply in pairs(target.players) do
+			local wep  = ply:GetActiveWeapon()
+
+			local ourAmmo = (ammo == "#p" and wep:GetPrimaryAmmoType()) or (ammo == "#s" and wep:GetSecondaryAmmoType()) or ammo
+
+			local realAmount = math.Clamp(amount or 1e5, 0, 9999)
+			print(realAmount)
+
+			ply:GiveAmmo(realAmount, ourAmmo)
+		end
+
+		local t = {nil, caller, " gave ", target}
+
+		if amount then
+			t[#t + 1] = " "
+			t[#t + 1] = amount
+		end
+
+		if type then
+			t[#t + 1] = " "
+			t[#t + 1] = mapper[ammo:lower()] or ("%q ammo"):format(ammo)
+			t[#t + 1] = "."
+		else
+			t[#t + 1] = " ammo."
+		end
+
+		tetra.echo(unpack(t))
+	end, "admin")
+
+	:setFullName("Give Ammo")
+	:setDescription("Give some ammo to players.")
+	:setConsoleAllowed(true)
+
+	:addArgument(TETRA_ARG_NUMBER)
+		:setName("Amount")
+		:setDescription("Amount of ammo to give to the player(s).")
+		:setOptional(true)
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("Ammo Type")
+		:setDescription("Type of ammo to give. (#p for weapon primary, #s for weapon secondary)")
+		:setOptional(true)
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to give ammunition to.")
+		:setDefaultToCaller(true)
+end

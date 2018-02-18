@@ -1,13 +1,19 @@
 local playerMeta = {isPlayerObject = true}
 
 tetra.getSet(playerMeta, "multiple", "boolean", "contains")
+tetra.isSet (playerMeta, "callerOnly", "boolean")
 
 tetra.multiplepeople_color = Color(72, 125, 175)
 
 function playerMeta:insertPlayersForDisplay(tbl)
 	local c = #self.players
 
-	if c == player.GetCount() then
+	if self:isCallerOnly() then
+		table.insert(tbl, tetra.multiplepeople_color)
+		table.insert(tbl, "themself")
+
+		return
+	elseif c == player.GetCount() then
 		table.insert(tbl, tetra.multiplepeople_color)
 		table.insert(tbl, "everyone")
 
@@ -15,11 +21,6 @@ function playerMeta:insertPlayersForDisplay(tbl)
 	elseif c > 10 then
 		table.insert(tbl, tetra.multiplepeople_color)
 		table.insert(tbl, "multiple people")
-
-		return
-	elseif c == 1 and self.players[1] == self.caller then
-		table.insert(tbl, tetra.multiplepeople_color)
-		table.insert(tbl, "themself")
 
 		return
 	end
@@ -50,13 +51,14 @@ function playerMeta:filter(callback)
 
 	self.players = new
 	self:setMultiple(#new > 0)
+	self:setCallerOnly(#new == 1 and new[1] == self.caller)
 
 	return good
 end
 
-function playerMeta:forEach(callback)
+function playerMeta:forEach(callback, ...)
 	for _, v in ipairs(self.players) do
-		callback(v)
+		callback(v, ...)
 	end
 end
 
@@ -150,7 +152,8 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 		end
 	end
 
-	if not players or #players == 0 then return end
+	local amt = #players
+	if not players or amt == 0 then return end
 
 	local obj = {
 		players = players,
@@ -158,7 +161,8 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 	}
 	setmetatable(obj, m)
 
-	obj:setMultiple(#players > 1)
+	obj:setMultiple  (amt > 1)
+	obj:setCallerOnly(amt == 1 and players[1] == caller)
 
 	return obj
 end

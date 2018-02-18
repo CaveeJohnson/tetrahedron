@@ -35,6 +35,7 @@ function aowl.AddCommand(...)
 	tetra.commands.register(...)
 		:setConsoleAllowed(true)
 		:setVariadic(true)
+		:setEasyluaEnvironment(true)
 end
 
 function aowl.TargetNotFound(target)
