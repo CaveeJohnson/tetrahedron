@@ -35,7 +35,12 @@ function tetra.commands.run(caller, cmd, args, line)
 				local arg = args[i]
 
 				if not arg and v.argtype == TETRA_ARG_PLAYER and v:shouldDefaultToCaller() and IsValid(caller) then
-					res = tetra.playerObjectFromTable{caller} -- default to caller
+					if not valid and not optional then
+						tetra.logf("console provided no value to argument '%s' (#%d) for command '%s' which defaults to caller; this is not supported for the console!", v.name or i, i, cmd)
+						return
+					end
+
+					res = tetra.playerObjectFromTable({caller}, caller) -- default to caller
 				elseif not arg and not optional then
 					return fail(caller, "Argument '%s' (#%d) is missing and is not optional.", v.name or i, i)
 				else

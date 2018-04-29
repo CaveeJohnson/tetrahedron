@@ -1,4 +1,4 @@
-function tetra.getSet(meta, var, expected, get)
+function tetra.getSet(meta, var, expected, get, set)
 	local name = var:gsub("^(%l)", string.upper)
 
 	local get_name = (get or "get") .. name

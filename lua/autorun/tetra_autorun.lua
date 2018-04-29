@@ -36,6 +36,9 @@ end
 
 do
 	incl_cl("tetra/client.lua")
+
+	incl_cl("tetra/spectate/cl_spectate.lua")
+	incl_cl("tetra/countdown/cl_countdown.lua")
 end
 
 do
@@ -45,6 +48,9 @@ do
 	incl_sv("tetra/commands_sv.lua")
 
 	incl_sv("tetra/wrappers/aowl.lua")
+
+	incl_sv("tetra/spectate/sv_spectate.lua")
+	incl_sv("tetra/countdown/sv_countdown.lua")
 end
 
 local files = file.Find("tetra/commands/*.lua", "LUA")
@@ -53,4 +59,8 @@ for _, v in ipairs(files) do
 	tetra.logf("loaded %s command file", v:gsub("%.lua", ""))
 end
 
-tetra.logf("startup done!")
+local function tetra_init()
+	hook.Run("Tetra_Startup")
+	tetra.logf("startup done!")
+end
+timer.Simple(1, tetra_init)

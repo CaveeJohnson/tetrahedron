@@ -71,7 +71,7 @@ local special = {
 	["#bots"]     = player.GetBots,
 
 	["#us"]       = function(caller)
-		if not IsValid(caller) then return end
+		if not IsValid(caller) then return {} end
 
 		local us = {}
 		for _, v in ipairs(player.GetAll()) do
@@ -83,7 +83,7 @@ local special = {
 	end,
 
 	["#admins"]   = function(caller)
-		if not IsValid(caller) or not caller:IsAdmin() then return end
+		if not IsValid(caller) or not caller:IsAdmin() then return {} end
 
 		local plys = {}
 		for _, v in ipairs(player.GetAll()) do
@@ -95,7 +95,7 @@ local special = {
 	end,
 
 	["#sadmins"]  = function(caller)
-		if not IsValid(caller) or not caller:IsSuperAdmin() then return end
+		if not IsValid(caller) or not caller:IsSuperAdmin() then return {} end
 
 		local plys = {}
 		for _, v in ipairs(player.GetAll()) do
@@ -107,6 +107,8 @@ local special = {
 	end,
 
 	["#me"]      = function(caller)
+		if not IsValid(caller) then return {} end
+
 		return {caller}
 	end,
 }
@@ -167,12 +169,16 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 	return obj
 end
 
-function tetra.playerObjectFromTable(players)
+function tetra.playerObjectFromTable(players, caller)
 	local obj = {
 		players = players,
+		caller = caller,
 	}
 	setmetatable(obj, m)
 
-	obj:setMultiple(#players > 1)
+	local amt = #players
+	obj:setMultiple(amt > 1)
+	obj:setCallerOnly(amt == 1 and players[1] == caller)
+
 	return obj
 end

@@ -122,7 +122,7 @@ function tetra.teleport.sendPlayer(from, to)
 	local last_pos   = from:GetPos()
 
 	if target_pos:DistToSqr(last_pos) <= 0x00010000 then -- 256 squared
-		tetra.teleport.doTeleport(from, to) -- doesn't actually do a tp, just makes them thing they did
+		tetra.teleport.doTeleport(from, to) -- doesn't actually do a tp, just makes them think they did
 
 		return true
 	end

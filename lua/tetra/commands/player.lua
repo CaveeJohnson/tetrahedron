@@ -15,6 +15,7 @@ do
 	:setDescription("Chat as if you were performing an action.")
 	:setSilent(true)
 	:setIgnoreArguments(true)
+	:setConsoleAllowed(true)
 end
 
 do
@@ -214,6 +215,10 @@ end
 
 do
 	tetra.commands.register("suicide,die,kill,kms,wrist", function(caller)
+		if not caller:IsAdmin() and not hook.Run("CanPlayerSuicide", caller) then
+			return false, "You cannot kill yourself right now"
+		end
+
 		caller:Kill()
 	end, "user")
 
@@ -428,11 +433,9 @@ do
 
 		for _, ply in pairs(target.players) do
 			local wep  = ply:GetActiveWeapon()
-
 			local ourAmmo = (ammo == "#p" and wep:GetPrimaryAmmoType()) or (ammo == "#s" and wep:GetSecondaryAmmoType()) or ammo
 
 			local realAmount = math.Clamp(amount or 1e5, 0, 9999)
-			print(realAmount)
 
 			ply:GiveAmmo(realAmount, ourAmmo)
 		end
@@ -473,4 +476,31 @@ do
 		:setName("Target")
 		:setDescription("The player(s) to give ammunition to.")
 		:setDefaultToCaller(true)
+end
+
+do
+	tetra.commands.register("cexec,cmd", function(caller, _, command, target)
+		command = command:gsub("%[%[", "\""):gsub("%]%]", "\"") -- no escaping fuckers.
+
+		for _, v in ipairs(target.players) do
+			v:SendLua(string.format([=[LocalPlayer():ConCommand([[%s]])]=], command)) -- can't use :ConCommand since it blocks lots of shit on server
+		end
+	end, "user")
+
+	:setFullName("Client Execute")
+	:setDescription("Execute a command on a specific player.")
+
+	:addArgument(TETRA_ARG_STRING)
+		:setName("Command")
+		:setDescription("The command to call.")
+
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to run the command on.")
+		:setDefaultToCaller(true)
+		:setFilter(function(_, target, caller)
+			if not (target:isCallerOnly() or (not IsValid(caller) or caller:IsSuperAdmin())) then
+				return "only superadmins can target other players"
+			end
+		end)
 end

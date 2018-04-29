@@ -6,7 +6,7 @@ aowl.GotoLocations = {}
 local function aowl_initialised()
 	hook.Run("AowlInitialized")
 end
-timer.Simple(1, aowl_initialised)
+hook.Add("Tetra_Startup", "aowl", aowl_initialised)
 
 aowl.Prefix = tetra.commands.prefix
 

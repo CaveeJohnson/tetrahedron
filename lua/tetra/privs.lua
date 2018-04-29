@@ -60,6 +60,8 @@ function tetra.privs.groupHas(group, name)
 		base = tetra.users.groups[base]
 	end
 
+	if CAMI.UsergroupInherits(group, name) then return true end
+
 	return false
 end
 
