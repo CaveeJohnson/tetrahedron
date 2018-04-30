@@ -19,7 +19,7 @@ do
 end
 
 do
-	tetra.commands.register("setfov,fov", function(caller, _, target, fov)
+	tetra.commands.register("setfov,fov", function(caller, _, fov, target)
 		for _, ply in ipairs(target.players) do
 			ply:SetFOV(fov, 0.5)
 		end
@@ -31,17 +31,17 @@ do
 	:setDescription("Change the FOV of players.")
 	:setConsoleAllowed(true)
 
+	:addArgument(TETRA_ARG_NUMBER)
+		:setName("FOV")
+		:setDescription("The FOV (0 to reset).")
 	:addArgument(TETRA_ARG_PLAYER)
 		:setName("Target")
 		:setDescription("The player(s) to set the FOV of.")
 		:setDefaultToCaller(true)
-	:addArgument(TETRA_ARG_NUMBER)
-		:setName("FOV")
-		:setDescription("The FOV (0 to reset).")
 end
 
 do
-	tetra.commands.register("ignite,roast,burn", function(caller, _, target, time, range)
+	tetra.commands.register("ignite,roast,burn", function(caller, _, time, range, target)
 		for _, ply in ipairs(target.players) do
 			ply:Ignite(time or 5, range or 0)
 		end
@@ -68,10 +68,6 @@ do
 	:setDescription("Ignite players.")
 	:setConsoleAllowed(true)
 
-	:addArgument(TETRA_ARG_PLAYER)
-		:setName("Target")
-		:setDescription("The player(s) to ignite.")
-		:setDefaultToCaller(true)
 	:addArgument(TETRA_ARG_NUMBER)
 		:setName("Time")
 		:setDescription("How long the ignition will last for.")
@@ -80,6 +76,10 @@ do
 		:setName("Range")
 		:setDescription("How far the fire will spread.")
 		:setOptional(true)
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to ignite.")
+		:setDefaultToCaller(true)
 end
 
 do
@@ -138,7 +138,7 @@ do
 end
 
 do
-	tetra.commands.register("explode,detonate,splode,asplode,boom", function(caller, _, target, magnitude)
+	tetra.commands.register("explode,detonate,splode,asplode,boom", function(caller, _, magnitude, target)
 		for _, ply in ipairs(target.players) do
 			local ent = ents.Create("env_explosion")
 			ent:SetPos(ply:GetPos())
@@ -155,14 +155,14 @@ do
 	:setDescription("Explode players.")
 	:setConsoleAllowed(true)
 
-	:addArgument(TETRA_ARG_PLAYER)
-		:setName("Target")
-		:setDescription("The player(s) to explode.")
-		:setDefaultToCaller(true)
 	:addArgument(TETRA_ARG_NUMBER)
 		:setName("Magnitude")
 		:setDescription("The magnitude of the explosion.")
 		:setOptional(true)
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to explode.")
+		:setDefaultToCaller(true)
 end
 
 do
@@ -227,7 +227,7 @@ do
 end
 
 do
-	tetra.commands.register("sethealth,sethp,health,hp", function(caller, _, target, health)
+	tetra.commands.register("sethealth,sethp,health,hp", function(caller, _, health, target)
 		for _, ply in ipairs(target.players) do
 			ply:SetHealth(health)
 		end
@@ -239,17 +239,18 @@ do
 	:setDescription("Set the health of players.")
 	:setConsoleAllowed(true)
 
-	:addArgument(TETRA_ARG_PLAYER)
-		:setName("Target")
-		:setDescription("The player(s) to slay silently.")
 	:addArgument(TETRA_ARG_NUMBER)
 		:setName("Health")
 		:setDescription("The health to set.")
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to set the health of.")
+		:setDefaultToCaller(true)
 end
 
 
 do
-	tetra.commands.register("setarmor,armor", function(caller, _, target, armor)
+	tetra.commands.register("setarmor,armor", function(caller, _, armor, target)
 		for _, ply in ipairs(target.players) do
 			ply:SetArmor(armor)
 		end
@@ -261,12 +262,13 @@ do
 	:setDescription("Set the armor of players.")
 	:setConsoleAllowed(true)
 
-	:addArgument(TETRA_ARG_PLAYER)
-		:setName("Target")
-		:setDescription("The player(s) to slay silently.")
 	:addArgument(TETRA_ARG_NUMBER)
 		:setName("Armor")
 		:setDescription("The armor to set.")
+	:addArgument(TETRA_ARG_PLAYER)
+		:setName("Target")
+		:setDescription("The player(s) to set the armor of.")
+		:setDefaultToCaller(true)
 end
 
 do
