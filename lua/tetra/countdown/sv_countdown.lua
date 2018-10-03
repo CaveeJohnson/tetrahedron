@@ -3,6 +3,13 @@ function tetra.countdown(message, time, callback, ...)
 		tetra.abortCountdown()
 	end
 
+	if isstring(time) then -- aowl compat
+		local a = time
+
+		time = message
+		message = a
+	end
+
 	tetra.logf("countdown started for '%s'", message:Trim():gsub("\n", " "))
 	tetra.rpc(nil, "tetra.countdown", message, time)
 

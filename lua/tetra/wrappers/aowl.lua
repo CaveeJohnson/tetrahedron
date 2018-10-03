@@ -42,5 +42,5 @@ function aowl.TargetNotFound(target)
 	return string.format("could not find: %q", target or "<no target>")
 end
 
-aowl.AbortCountDown = stub
-aowl.CountDown      = stub
+aowl.AbortCountDown = tetra.abortCountdown or stub
+aowl.CountDown      = tetra.countdown      or stub

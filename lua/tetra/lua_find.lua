@@ -75,3 +75,8 @@ function tetra.findInGR(lookup)
 	findInternal(lookup, _G)
 	findInternal(lookup, _R, "_R")
 end
+
+function tetra.findInX(lookup, ref, namespace)
+	tetra.logf("lua: locating '%s' %s in %s", lookup, CLIENT and "clientside" or "serverside", namespace or ref)
+	findInternal(lookup, ref, namespace)
+end

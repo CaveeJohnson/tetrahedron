@@ -115,7 +115,7 @@ function tetra.commands.cmd(ply, _, args, line)
 end
 concommand.Add("tetra", tetra.commands.cmd) -- TODO: autocomplete (aids)
 
-tetra.commands.prefix = "[%.!/]"
+tetra.commands.prefix = tetra.side_loaded and "%." or "[%.!/]"
 local string_pattern  = "[\"|']"
 local escape_pattern  = "[\\]"
 local delim_pattern   = "[ ]"

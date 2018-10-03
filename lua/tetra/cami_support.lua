@@ -1,3 +1,5 @@
+if not tetra.users then return end
+
 tetra.cami = tetra.cami or {}
 
 local token = "tetrahedron"

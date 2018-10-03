@@ -297,6 +297,9 @@ do -- give weapon
 		"basewars_",
 		"fas2_",
 		"cw_",
+		"tfa_",
+		"tfa_cso_",
+		"tfa_cso2_",
 	}
 
 	local hl2_weps = {

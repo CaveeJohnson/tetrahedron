@@ -26,10 +26,7 @@ do
 	incl_sh("tetra/player_find.lua")
 	incl_sh("tetra/commands.lua")
 
-	incl_sh("tetra/usergroups.lua")
 	incl_sh("tetra/privs.lua")
-
-	incl_sh("tetra/cami_support.lua")
 
 	incl_sh("tetra/lua_find.lua")
 end
@@ -44,13 +41,12 @@ end
 do
 	incl_sv("tetra/rpc.lua")
 
-	incl_sv("tetra/usergroups_sv.lua")
 	incl_sv("tetra/commands_sv.lua")
-
-	incl_sv("tetra/wrappers/aowl.lua")
 
 	incl_sv("tetra/spectate/sv_spectate.lua")
 	incl_sv("tetra/countdown/sv_countdown.lua")
+
+	incl_sv("tetra/wrappers/aowl.lua")
 end
 
 local files = file.Find("tetra/commands/*.lua", "LUA")
@@ -60,6 +56,18 @@ for _, v in ipairs(files) do
 end
 
 local function tetra_init()
+	local side_loaded = (ulx and not ulx.fake) or (evolve and not evolve.fake) or (serverguard and not serverguard.fake)
+
+	if not side_loaded then
+		incl_sh("tetra/usergroups.lua")
+		incl_sv("tetra/usergroups_sv.lua")
+
+		incl_sh("tetra/cami_support.lua")
+	else
+		tetra.logf("starting up in side-loaded mode: no usergroup management")
+		tetra.side_loaded = true
+	end
+
 	hook.Run("Tetra_Startup")
 	tetra.logf("startup done!")
 end

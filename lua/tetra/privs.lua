@@ -50,17 +50,19 @@ function tetra.privs.groupHas(group, name)
 	if group == root then return true end
 	if groups[group] and groups[group][name] then return true end
 
-	local base = tetra.users.groups[group]
+	if tetra.users then
+		local base = tetra.users.groups[group]
 
-	while base do
-		if base == root then return true end
-		if groups[base] and groups[base][name] then return true end
-		if base == "user" then break end
+		while base do
+			if base == root then return true end
+			if groups[base] and groups[base][name] then return true end
+			if base == "user" then break end
 
-		base = tetra.users.groups[base]
+			base = tetra.users.groups[base]
+		end
 	end
 
-	if CAMI.UsergroupInherits(group, name) then return true end
+	if CAMI.UsergroupInherits(group, root) then return true end
 
 	return false
 end
@@ -94,7 +96,7 @@ function tetra.privs.hasImmediate(caller, priv) -- inside tetra only, outside ma
 		end
 	end
 
-	return false -- string.format("group '%s' does not have nor inherit privilege '%s'", group, priv)
+	return false, string.format("group '%s' does not have nor inherit privilege '%s'", group, priv)
 end
 
 function tetra.privs.has(caller, priv, callback)

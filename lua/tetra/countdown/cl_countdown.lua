@@ -25,7 +25,7 @@ function tetra.abortCountdown()
 		sound:FadeOut(2)
 	end
 
-	hook.Remove("HUDPaint", "tetra.countdown", tetra.drawCountdown)
+	hook.Remove("HUDPaint", "tetra.countdown")
 end
 
 local numbers = {

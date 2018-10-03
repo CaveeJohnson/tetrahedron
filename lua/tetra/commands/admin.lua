@@ -1,4 +1,4 @@
-do
+if tetra.users then
 	tetra.commands.register("rank,adduser,setrank,promote,usergroup", function(caller, line, target, group)
 		group = group:lower()
 
