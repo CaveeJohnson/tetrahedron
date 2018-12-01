@@ -59,7 +59,7 @@ for _, cat in ipairs(files) do
 	tetra.commands.setIncomingCategory(cat)
 	incl_sh("tetra/commands/" .. cat)
 
-	tetra.logf("loaded %s command file", v:gsub("%.lua", ""))
+	tetra.logf("loaded %s command file", cat:gsub("%.lua", ""))
 end
 
 -- reset so that incorrectly formed commands drop into the unsorted one
