@@ -29,8 +29,8 @@ aowl.SteamIDToCommunityID = stub
 aowl.AvatarForSteamID     = stub
 aowl.Message              = stub
 
-aowl.CallCommand = tetra.commands.run
-concommand.Add("aowl", tetra.commands.cmd)
+aowl.CallCommand = tetra.commands.run or stub
+if SERVER then concommand.Add("aowl", tetra.commands.cmd) end
 
 function aowl.AddCommand(...)
 	tetra.commands.register(...)
