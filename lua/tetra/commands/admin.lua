@@ -1,5 +1,7 @@
-if tetra.users then
+do
 	tetra.commands.register("rank,adduser,setrank,promote,usergroup", function(caller, line, target, group)
+		if not tetra.users then return false, "Tetra is sideloaded: User management is denied." end
+
 		group = group:lower()
 
 		tetra.echo(nil, caller, " has set ", target, "'s usergroup to '", group, "'.")
@@ -19,7 +21,7 @@ if tetra.users then
 		:setName("User Group")
 		:setDescription("The target's new usergroup.")
 		:setFilter(function(_, group)
-			if not tetra.users.groups[group:lower()] then
+			if tetra.users and not tetra.users.groups[group:lower()] then
 				return string.format("'%s' is not a valid usergroup", group:lower())
 			end
 		end)

@@ -46,7 +46,10 @@ do
 end
 
 function tetra.teleport.lookAt(from, to) -- would be nice to lerp
-	local look_at = to:EyePos() - from:EyePos()
+	if not (IsValid(from) and IsValid(to) and from:IsPlayer()) then return end
+
+	local to_pos = to:IsPlayer() and to:EyePos() or to:LocalToWorld(to:OBBCenter())
+	local look_at = to_pos - from:EyePos()
 	from:SetEyeAngles(look_at:Angle())
 end
 
@@ -88,32 +91,45 @@ do
 	})
 
 	function tetra.teleport.doTeleport(from, to, last_pos, next_pos)
+		local dead = false
+
 		if from:IsPlayer() then
-			if not from:Alive() then from:Spawn()       end
-			if from:InVehicle() then from:ExitVehicle() end
+			if not from:Alive() then from:Spawn() dead = true end
+			if from:InVehicle() then from:ExitVehicle()       end
 
 			if last_pos then tetra.teleport.pushBackPos(from, last_pos) end
 		end
 
-		if next_pos then
-			from:SetPos(next_pos)
+		local perform = function(sounds)
+			if not IsValid(from) then return end
 
-			from:EmitSound("tetra.teleport.1")
-			from:EmitSound("tetra.teleport.2")
-		else
-			from:EmitSound("tetra.teleport.close.1")
-			from:EmitSound("tetra.teleport.close.2")
+			if next_pos then
+				from:SetPos(next_pos)
+
+				if sounds then
+					from:EmitSound("tetra.teleport.1")
+					from:EmitSound("tetra.teleport.2")
+				end
+			elseif sounds then
+				from:EmitSound("tetra.teleport.close.1")
+				from:EmitSound("tetra.teleport.close.2")
+			end
+
+			if from:IsPlayer() then
+				tetra.teleport.lookAt(from, to)
+			end
 		end
 
-		if from:IsPlayer() then
-			tetra.teleport.lookAt(from, to)
+		perform(true)
+		if dead then
+			timer.Simple(0, perform) -- HACK: dodgy, sometimes you go to spawn
 		end
 	end
 end
 
 function tetra.teleport.sendPlayer(from, to)
 	if from == to then
-		return true -- self goto
+		return false, "you cannot go to yourself" -- self goto, makes no sense
 	elseif not (IsValid(from) and IsValid(to)) then
 		return false, "invalid entity"
 	end
@@ -208,17 +224,19 @@ tetra.commands.register("send,bring,acquire", function(caller, _, from, to)
 
 	tetra.echo(nil, caller, " teleported ", from, " to ", to, ".")
 
-	local fail = false
+	local fail = ""
 	for _, v in ipairs(from.players) do
-		local ok = tetra.teleport.sendPlayer(v, to.players[1])
+		if v ~= caller then
+			local ok, err = tetra.teleport.sendPlayer(v, to.players[1])
 
-		if not ok then
-			fail = true
+			if not ok then
+				fail = fail .. v:Nick() .. ": " .. err .. "\n"
+			end
 		end
 	end
 
-	if fail then
-		return false, "Failed to send all targets"
+	if fail ~= "" then
+		return false, "Failed to send all targets:\n" .. fail:sub(1, -2)
 	end
 end, "admin")
 

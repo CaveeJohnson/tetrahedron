@@ -115,64 +115,21 @@ function tetra.commands.cmd(ply, _, args, line)
 end
 concommand.Add("tetra", tetra.commands.cmd) -- TODO: autocomplete (aids)
 
-tetra.commands.prefix = tetra.side_loaded and "%." or "[%.!/]"
-local string_pattern  = "[\"|']"
-local escape_pattern  = "[\\]"
-local delim_pattern   = "[ ]"
-
-function tetra.commands.parse(data, delim)
-	local ret     = {}
-	local current = ""
-
-	local strchar = ""
-	local inside  = false
-	local escaped = false
-
-	-- Iterate for each character
-	for _, char in ipairs(utf8.totable(data)) do
-		if escaped then
-			current = current .. char
-			escaped = false
-		elseif char:find(string_pattern) and not inside and not escaped then
-			inside  = true
-			strchar = char
-		elseif char:find(escape_pattern) then
-			escaped = true
-		elseif inside and char == strchar then
-			inside 	= false
-			table.insert(ret, current:Trim())
-			current = ""
-		elseif char:find(delim or delim_pattern) and not inside and current ~= "" then
-			table.insert(ret, current)
-			current = ""
-		else
-			current = current .. char
-		end
-	end
-
-	if utf8.len(current:Trim()) ~= 0 then
-		table.insert(ret, current:Trim())
-	end
-
-	return ret
-end
-
 function tetra.commands.said(caller, line)
-	if not utf8.sub(line, 1, 1):find(tetra.commands.prefix) then
+	local prefix = tetra.commands.prefix
+
+	if not utf8.sub(line, 1, 1):find(prefix) then
 		return
 	end
 
-	local cmd  = line:match(tetra.commands.prefix .. "(.-) ") or line:match(tetra.commands.prefix .. "(.+)") or ""
-	line       = line:match(tetra.commands.prefix .. ".- (.+)")
+	local cmd = line:match(prefix .. "(.-) ") or line:match(prefix .. "(.+)")
+	line      = line:match(prefix .. ".- (.+)")
 
 	if not cmd then return end
 
 	local args
 	if line then
 		local delim = caller:GetInfo("tetra_delim") or " "
-		if #delim == 0 then delim = " " end
-		delim = "[" .. delim .. "]"
-
 		args = tetra.commands.parse(line, delim)
 	else
 		args = {}

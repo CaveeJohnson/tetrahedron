@@ -65,6 +65,8 @@ do
 	tetra.getSet(cmdMeta, "fullName", "string")
 	tetra.getSet(cmdMeta, "callback", "function")
 	tetra.getSet(cmdMeta, "description", "string")
+	tetra.getSet(cmdMeta, "category", "string")
+	tetra.getSet(cmdMeta, "icon", "string")
 
 	function cmdMeta:getArgumentCount()
 		return self.argument_count
@@ -101,6 +103,8 @@ function tetra.commands.get(cmd)
 	return list[real], real
 end
 
+local group_cat
+
 local m = {__index = cmdMeta}
 function tetra.commands.register(cmd, callback, default_group)
 	if SERVER then tetra.typeCheck("function", 2, callback) end
@@ -135,6 +139,7 @@ function tetra.commands.register(cmd, callback, default_group)
 		argument_count = 0,
 		arguments      = {},
 		callback       = callback,
+		category       = group_cat,
 	}
 	list[primary] = setmetatable(obj, m)
 	alias_list[primary] = primary
@@ -152,4 +157,88 @@ function tetra.commands.register(cmd, callback, default_group)
 	end
 
 	return obj
+end
+
+function tetra.commands.setIncomingCategory(cat)
+	group_cat = cat
+end
+
+tetra.commands.prefix = tetra.side_loaded and "%." or "[%.!/]"
+
+local string_pattern  = "[\"|']"
+local escape_pattern  = "[\\]"
+local delim_pattern   = " "
+
+function tetra.commands.parse(data, delim)
+	if #delim == 0 then delim = " " end
+	delim = "[" .. delim .. "]"
+
+	local ret     = {}
+	local current = ""
+
+	local strchar = ""
+	local inside  = false
+	local escaped = false
+
+	-- Iterate for each character
+	for _, char in ipairs(utf8.totable(data)) do
+		if escaped then
+			current = current .. char
+			escaped = false
+		elseif char:find(string_pattern) and not inside and not escaped then
+			inside  = true
+			strchar = char
+		elseif char:find(escape_pattern) then
+			escaped = true
+		elseif inside and char == strchar then
+			inside 	= false
+			table.insert(ret, current:Trim())
+			current = ""
+		elseif char:find(delim or delim_pattern) and not inside then
+			if current ~= "" then
+				table.insert(ret, current:Trim())
+				current = ""
+			end
+		else
+			current = current .. char
+		end
+	end
+
+	if utf8.len(current:Trim()) ~= 0 then
+		table.insert(ret, current:Trim())
+	end
+
+	return ret
+end
+
+function tetra.commands.implode(args, delim)
+	if #delim == 0 then delim = " " end
+
+	local needs_escaping = "[\"'" .. delim .. "]"
+
+	local ret = ""
+	local needs_delimiting = false
+
+	for _, data in ipairs(args) do
+		local stringify = tostring(data)
+		stringify = stringify:gsub("\"", "\\\"")
+
+		if stringify:find(needs_escaping) then
+			stringify = "\"" .. stringify .. "\""
+		end
+
+		if not needs_delimiting then
+			needs_delimiting = true
+		else
+			if delim ~= " " then
+				stringify = delim .. " " .. stringify
+			else
+				stringify = delim .. stringify
+			end
+		end
+
+		ret = ret .. stringify
+	end
+
+	return ret
 end

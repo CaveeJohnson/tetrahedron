@@ -52,8 +52,6 @@ local function logIfNotAdmin(ply)
 	if not tenno_scuum[ply] and not admin then
 		tetra.echo(nil, "Hey ", ply, ", why are you sending internal net messages to the admin mod when you aren't an admin?\nThis has been logged and everyone saw this, this will not repeat.")
 		tenno_scuum[ply] = true
-
-		return true
 	end
 
 	return admin
@@ -124,7 +122,7 @@ local function recievePlayerNotify(_, ply)
 	local start = net.ReadBool()
 
 	if start then
-		if logIfNotAdmin(ply) then return end
+		if not logIfNotAdmin(ply) then return end
 		tetra.spectate.start(ply, net.ReadEntity())
 	else
 		tetra.spectate.finish(ply, true)

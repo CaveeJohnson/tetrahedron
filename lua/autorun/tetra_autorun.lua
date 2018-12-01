@@ -1,5 +1,8 @@
 tetra = tetra or {}
 
+local side_loaded = (ulx and not ulx.fake) or (evolve and not evolve.fake) or (serverguard and not serverguard.fake)
+tetra.side_loaded = side_loaded or nil
+
 local function incl_sh(path)
 	AddCSLuaFile(path)
 	return include(path)
@@ -21,6 +24,8 @@ do
 	incl_sh("tetra/util.lua")
 	incl_sh("tetra/class.lua")
 
+	incl_sh("tetra/libs/cache.lua")
+
 	incl_sh("tetra/logging.lua")
 
 	incl_sh("tetra/player_find.lua")
@@ -29,10 +34,12 @@ do
 	incl_sh("tetra/privs.lua")
 
 	incl_sh("tetra/lua_find.lua")
+	incl_sh("tetra/wrappers/aowl.lua")
 end
 
 do
 	incl_cl("tetra/client.lua")
+	incl_cl("tetra/chat_handler.lua")
 
 	incl_cl("tetra/spectate/cl_spectate.lua")
 	incl_cl("tetra/countdown/cl_countdown.lua")
@@ -45,19 +52,20 @@ do
 
 	incl_sv("tetra/spectate/sv_spectate.lua")
 	incl_sv("tetra/countdown/sv_countdown.lua")
-
-	incl_sv("tetra/wrappers/aowl.lua")
 end
 
 local files = file.Find("tetra/commands/*.lua", "LUA")
-for _, v in ipairs(files) do
-	incl_sh("tetra/commands/" .. v)
+for _, cat in ipairs(files) do
+	tetra.commands.setIncomingCategory(cat)
+	incl_sh("tetra/commands/" .. cat)
+
 	tetra.logf("loaded %s command file", v:gsub("%.lua", ""))
 end
 
-local function tetra_init()
-	local side_loaded = (ulx and not ulx.fake) or (evolve and not evolve.fake) or (serverguard and not serverguard.fake)
+-- reset so that incorrectly formed commands drop into the unsorted one
+tetra.commands.setIncomingCategory(nil)
 
+local function tetra_init()
 	if not side_loaded then
 		incl_sh("tetra/usergroups.lua")
 		incl_sv("tetra/usergroups_sv.lua")
@@ -65,7 +73,6 @@ local function tetra_init()
 		incl_sh("tetra/cami_support.lua")
 	else
 		tetra.logf("starting up in side-loaded mode: no usergroup management")
-		tetra.side_loaded = true
 	end
 
 	hook.Run("Tetra_Startup")

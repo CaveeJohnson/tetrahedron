@@ -166,6 +166,21 @@ do
 end
 
 do
+	hook.Add("PostPlayerDeath", "tetra.commands.revive", function(ply)
+		if basewars then return end -- support for weapon dropping
+
+		local weps = {}
+
+		for _, v in pairs(ply:GetWeapons()) do
+			table.insert(weps, v:GetClass())
+		end
+
+		if #weps > 0 then
+			-- doesn't matter if we dont really die, just most up-to-date info
+			ply.__tetra_revive_lastDeathWeps = weps
+		end
+	end)
+
 	tetra.commands.register("revive,resuscitate,resurrect", function(caller, _, target)
 		for _, ply in ipairs(target.players) do
 			local oldpos = ply:GetPos()
@@ -174,6 +189,16 @@ do
 			ply:Spawn()
 			ply:SetPos(oldpos)
 			ply:SetEyeAngles(oldang)
+
+			if ply.__tetra_revive_lastDeathWeps then
+				ply:StripWeapons()
+
+				for _, v in ipairs(ply.__tetra_revive_lastDeathWeps) do
+					ply:Give(v)
+				end
+
+				ply.__tetra_revive_lastDeathWeps = nil
+			end
 		end
 
 		tetra.echo(nil, caller, " revived ", target, ".")

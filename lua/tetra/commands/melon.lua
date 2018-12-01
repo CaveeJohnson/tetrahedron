@@ -9,6 +9,14 @@ ENT.speed     = 800
 ENT.jumpForce = 4000
 
 if SERVER then
+	hook.Add("PlayerCanPickupWeapon", "tetra.commands.melon", function(ply)
+		if IsValid(ply.melon) then return false end
+	end)
+
+	hook.Add("PlayerUse", "tetra.commands.melon", function(ply)
+		if IsValid(ply.melon) then return false end
+	end)
+
 	function ENT:Initialize()
 		self:SetModel(self.model)
 		self:PhysicsInit(SOLID_VPHYSICS)
@@ -109,6 +117,14 @@ if SERVER then
 		self.owner = ply
 		ply.melon  = self
 
+		if not self.weaponRet then
+			self.weaponRet = ply:GetWeapons()
+
+			for k, v in pairs(self.weaponRet) do
+				self.weaponRet[k] = v:GetClass()
+			end
+		end
+
 		ply:StripWeapons()
 		ply:Spectate(OBS_MODE_CHASE)
 		ply:SpectateEntity(self)
@@ -146,10 +162,19 @@ if SERVER then
 		local pos, ang = self:GetPos(), self:GetAngles()
 		owner:UnSpectate()
 		owner:KillSilent()
+
 		if respawn ~= false then
 			owner:Spawn()
 			owner:SetPos(pos)
 			owner:SetAngles(ang)
+
+			if self.weaponRet then
+				owner:StripWeapons()
+
+				for _, v in pairs(self.weaponRet) do
+					owner:Give(v)
+				end
+			end
 		end
 	end
 
