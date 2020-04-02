@@ -62,19 +62,19 @@ for _, cat in ipairs(files) do
 	tetra.logf("loaded %s command file", cat:gsub("%.lua", ""))
 end
 
+if not side_loaded then
+	incl_sh("tetra/usergroups.lua")
+	incl_sv("tetra/usergroups_sv.lua")
+
+	incl_sh("tetra/cami_support.lua")
+else
+	tetra.logf("starting up in side-loaded mode: no usergroup management")
+end
+
 -- reset so that incorrectly formed commands drop into the unsorted one
 tetra.commands.setIncomingCategory(nil)
 
 local function tetra_init()
-	if not side_loaded then
-		incl_sh("tetra/usergroups.lua")
-		incl_sv("tetra/usergroups_sv.lua")
-
-		incl_sh("tetra/cami_support.lua")
-	else
-		tetra.logf("starting up in side-loaded mode: no usergroup management")
-	end
-
 	hook.Run("Tetra_Startup")
 	tetra.logf("startup done!")
 end
