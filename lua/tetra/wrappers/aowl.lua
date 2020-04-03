@@ -27,7 +27,32 @@ end
 aowl.CommunityIDToSteamID = stub
 aowl.SteamIDToCommunityID = stub
 aowl.AvatarForSteamID     = stub
-aowl.Message              = stub
+
+do
+	local NOTIFY = {
+		GENERIC	= 0,
+		ERROR	= 1,
+		UNDO	= 2,
+		HINT	= 3,
+		CLEANUP	= 4,
+	}
+
+	function aowl.Message(ply, msg, type, duration)
+		duration = duration or 5
+
+		tetra.rpc(
+			ply or nil,
+			"notification.AddLegacy",
+			"tetra: " .. msg,
+			NOTIFY[(type and type:upper())] or NOTIFY.GENERIC,
+			duration)
+
+		tetra.rpc(
+			ply or nil,
+			"MsgN",
+			"tetra: " .. msg)
+	end
+end
 
 aowl.CallCommand = tetra.commands.run or stub
 if SERVER then concommand.Add("aowl", tetra.commands.cmd) end

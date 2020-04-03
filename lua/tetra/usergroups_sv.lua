@@ -140,11 +140,20 @@ function tetra.users.initialSpawn(ply)
 	local sid64 = ply:SteamID64()
 	local group = tetra.users.getGroup(sid64)
 
-	ply:SetUserGroup(group, true)
-	tetra.logf("loaded user '%s' (%s); usergroup '%s'", ply:Nick(), sid64, group or "user")
+	if ply.IsFullyAuthenticated and not ply:IsFullyAuthenticated() then
+		ply:SetUserGroup("user", true)
+		tetra.logf("loaded user '%s' (%s); usergroup '%s' << NOT AUTHENTICATED >>", ply:Nick(), sid64, group)
+	else
+		ply:SetUserGroup(group, true)
+		tetra.logf("loaded user '%s' (%s); usergroup '%s'", ply:Nick(), sid64, group)
+	end
 
 	for group_name, inherit in pairs(tetra.users.groups) do
 		tetra.rpc(ply, "tetra.users.registerGroup", group_name, inherit, false) -- send them all the groups
 	end
 end
 hook.Add("PlayerInitialSpawn", "tetra", tetra.users.initialSpawn)
+hook.Remove("PlayerInitialSpawn", "PlayerAuthSpawn") -- YOU FUCKING SUBHUMAN APES WHO CANT CODE
+-- ROBOT BOY YOU FUCKING DIPSHIT, YOU THINK ITS OKAY TO CHANGE HOOK ORDER SO YOUR FUCKING SHITTY
+-- BUILTIN ADMIN SYSTEM THAT NOBODY HAS EVER USED RUNS AFTER EVERYTHING ELSE? FUCKING OVERRIDING
+-- EVERY RANK TO USER? FUCKING STOP BREATHING
