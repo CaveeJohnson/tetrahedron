@@ -142,6 +142,7 @@ function tetra.users.initialSpawn(ply)
 
 	if ply.IsFullyAuthenticated and not ply:IsFullyAuthenticated() then
 		ply:SetUserGroup("user", true)
+		ply._tetra_retry_on_auth = true
 		tetra.logf("loaded user '%s' (%s); usergroup '%s' << NOT AUTHENTICATED >>", ply:Nick(), sid64, group)
 	else
 		ply:SetUserGroup(group, true)
@@ -157,3 +158,19 @@ hook.Remove("PlayerInitialSpawn", "PlayerAuthSpawn") -- YOU FUCKING SUBHUMAN APE
 -- ROBOT BOY YOU FUCKING DIPSHIT, YOU THINK ITS OKAY TO CHANGE HOOK ORDER SO YOUR FUCKING SHITTY
 -- BUILTIN ADMIN SYSTEM THAT NOBODY HAS EVER USED RUNS AFTER EVERYTHING ELSE? FUCKING OVERRIDING
 -- EVERY RANK TO USER? FUCKING STOP BREATHING
+
+function tetra.users.onAuthed(ply, steamid)
+	if not ply._tetra_retry_on_auth or ply:GetUserGroup() ~= "user" then return end -- don't care or already fixed
+
+	local sid64 = ply:SteamID64()
+	local group = tetra.users.getGroup(sid64)
+
+	if group and group ~= "user" then
+		ply:SetUserGroup(group, true)
+		ply._tetra_retry_on_auth = nil
+		tetra.logf("loaded user '%s' (%s); usergroup '%s' [delayed by steam auth]", ply:Nick(), sid64, group)
+
+		tetra.chat(ply, tetra.warn_color, "Authenticated by steam [late], your usergroup is now loaded.")
+	end
+end
+hook.Add("PlayerAuthed", "tetra", tetra.users.onAuthed)

@@ -28,7 +28,7 @@ do
 			nameGood = true -- better than nought
 		end
 
-		if nameGood then -- for low partiality matches, closes, looked at
+		if nameGood then -- for low partiality matches, closest, looked at
 			local localPos = localPly:EyePos()
 			local plyPos   = ply:EyePos()
 
