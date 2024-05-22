@@ -239,3 +239,26 @@ do
 			end
 		end)
 end
+
+do
+	tetra.commands.register("unrestrict,unrestricted,restrictions,restrict,restricted", function(caller)
+		if caller.Unrestricted then
+			tetra.echo(nil, caller, " became restricted, ", {text = "admin abuse over", color = Color(150, 255, 150)}, ".")
+
+			caller.Unrestricted = nil
+			caller:SetNWBool("Unrestricted", false)
+			caller:SetNW2Bool("Unrestricted", false)
+		else
+			tetra.echo(nil, caller, " became unrestricted, ", {text = "admin abuse incoming", color = Color(255, 150, 150)}, ".")
+
+			caller.Unrestricted = true
+			caller:SetNWBool("Unrestricted", true)
+			caller:SetNW2Bool("Unrestricted", true)
+		end
+	end, "superadmin")
+
+	:setFullName("Unrestricted Mode")
+	:setDescription("Toggle Unrestricted, only ever applies to caller.")
+	:setIgnoreArguments(true)
+	:setSilent(true)
+end

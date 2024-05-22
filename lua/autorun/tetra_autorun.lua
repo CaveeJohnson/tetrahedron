@@ -74,6 +74,16 @@ end
 -- reset so that incorrectly formed commands drop into the unsorted one
 tetra.commands.setIncomingCategory(nil)
 
+-- seems like delayed addcsluafile is fucked
+if not side_loaded then
+	incl_sh("tetra/usergroups.lua")
+	incl_sv("tetra/usergroups_sv.lua")
+
+	incl_sh("tetra/cami_support.lua")
+else
+	tetra.logf("starting up in side-loaded mode: no usergroup management")
+end
+
 local function tetra_init()
 	hook.Run("Tetra_Startup")
 	tetra.logf("startup done!")
