@@ -114,6 +114,9 @@ function tetra.echo(ply, ...)
 			table.insert(out, tostring(v))
 		elseif istable(v) and v.isPlayerObject then
 			v:insertPlayersForDisplay(out)
+		elseif istable(v) and v.color and v.text then
+			table.insert(out, v.color)
+			table.insert(out, v.text)
 		elseif isentity(v) and v:IsPlayer() then
 			table.insert(out, team.GetColor(v:Team()))
 			table.insert(out, v:Nick())
