@@ -14,7 +14,7 @@ warps = warps[game.GetMap()] or nil
 local cooldown = 60
 local free_warp = 1000
 local base_cost = 250
-local warp_string = table.concat(table.GetKeys(warps), ", ")
+local warp_string = warps and table.concat(table.GetKeys(warps), ", ")
 
 tetra.commands.register("warp,fasttravel", function(caller, _, warp)
     if not warps then return false, "map doesn't have any warp points" end
