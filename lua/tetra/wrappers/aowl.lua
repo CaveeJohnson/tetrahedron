@@ -57,8 +57,8 @@ end
 aowl.CallCommand = tetra.commands.run or stub
 if SERVER then concommand.Add("aowl", tetra.commands.cmd) end
 
-function aowl.AddCommand(...)
-	tetra.commands.register(...)
+function aowl.AddCommand(cmd, callback, group)
+	tetra.commands.register(cmd, callback, group or "user") -- aowl defaults to user, tetra to admin
 		:setConsoleAllowed(true)
 		:setVariadic(true)
 		:setEasyluaEnvironment(true)

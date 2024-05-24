@@ -34,7 +34,6 @@ do
 	incl_sh("tetra/privs.lua")
 
 	incl_sh("tetra/lua_find.lua")
-	incl_sh("tetra/wrappers/aowl.lua")
 end
 
 do
@@ -70,7 +69,6 @@ if not side_loaded then
 else
 	tetra.logf("starting up in side-loaded mode: no usergroup management")
 end
-
 -- reset so that incorrectly formed commands drop into the unsorted one
 tetra.commands.setIncomingCategory(nil)
 
@@ -82,6 +80,10 @@ if not side_loaded then
 	incl_sh("tetra/cami_support.lua")
 else
 	tetra.logf("starting up in side-loaded mode: no usergroup management")
+end
+
+do
+	incl_sh("tetra/wrappers/aowl.lua")
 end
 
 local function tetra_init()
