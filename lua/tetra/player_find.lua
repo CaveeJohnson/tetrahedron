@@ -127,6 +127,9 @@ function tetra.findPlayersFrom(data, caller, fuzzy) -- warning: returns nil on f
 	local players
 	if special[data] then
 		players = special[data](caller)
+	elseif data:match("^_%d+$") then
+		local target = player.GetById(data:match("^_(%d+)$"))
+		if IsValid(target) then players = {target} end
 	else
 		players = {}
 

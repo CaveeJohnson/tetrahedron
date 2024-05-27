@@ -45,6 +45,7 @@ do
 
 		tetra.users.loadGroups()
 	end, nil, "Reload all tetrahedron's usergroup file.")
+	hook.Add("Initialize", "tetra.users.loadGroups", tetra.users.loadGroups)
 end
 
 local user_reference = tetra.users.reference or {}
