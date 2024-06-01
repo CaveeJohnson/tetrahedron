@@ -15,7 +15,7 @@ do
 	-- then run tetra_reloadgroups on the server
 	function tetra.users.loadGroups()
 		local raw = file.Read(GROUPS_FILE, "DATA")
-		if not raw then return false end
+		if not raw then return end
 
 		for _, v in ipairs(raw:Split("\n")) do
 			local group, inherits, privs = v:match("^%s-(%w+);(%w+);(.*)$")
@@ -37,7 +37,7 @@ do
 			end
 		end
 
-		return true
+		return
 	end
 
 	concommand.Add("tetra_reloadgroups", function(ply)
